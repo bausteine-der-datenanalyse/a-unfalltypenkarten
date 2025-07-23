@@ -1,0 +1,36 @@
+project:
+  type: book
+  output-dir: output/book/
+
+book:
+  title: "Anwendungsbaustein Unfalltypenkarten"
+  author:
+    - Lukas Arnold
+    - Simone Arnold
+    - Florian Bagemihl
+    - Matthias Baitsch
+    - Marc Fehr
+    - Maik Poetzsch
+    - Sebastian Seipel
+  date: today
+  language: de-DE
+  repo-url: "https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarten"
+  repo-actions: [source]
+  favicon: "bilder/favicon_bcd_new.svg"
+  sidebar:
+    title: "Anwendungsbaustein Unfalltypenkarten"
+    logo: "bilder/logo_bcd_new.svg"
+  chapters:
+    - index.qmd
+    - aufgabe/aufgaben_unfalltypenkarten.qmd
+    - musterloesung.qmd
+    - unfalltypenkarten.qmd
+
+format:
+  html:
+    theme: cosmo
+    lang: de
+    toc: true
+    toc-depth: 3
+
+

@@ -1,0 +1,10 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+/.quarto/
+/data/geo
+/data/shp
+/unfalltypenkarten_cache
+/unfalltypenkarten_files/figure-html
