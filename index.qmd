@@ -53,6 +53,10 @@ bestimmte Datentypen eignen.
 
 ## Verwendete Datensätze
 
+Die statistischen Ämter des Bundes und der Länder erheben und veröffentlichen mit der Straßenverkehrsunfallstatistik die Verkehrsunfälle mit Personenschaden oder Sachschaden in Deutschland. Im [Unfallatlas](https://unfallatlas.statistikportal.de/) werden Unfälle mit Personenschaden geführt. Für die Sicherheitsanalyse von Verkehrsnetzen können diese Daten verwendet und analysiert werden.
+
+Verwenden Sie für das Straßennetz die Daten des Bundesinformationssystems Straße (BISStra) der Bundesanstalt für Straßen- und Verkehrswesen (BASt): <https://www.bast.de/DE/Verkehrstechnik/Fachthemen/v2-bisstra.html>
+
 [Daten des Straßennetzes des Bundesinformationssystem Straße
 (BISStra)](https://www.bast.de/DE/Verkehrstechnik/Fachthemen/v2-bisstra.html)
 

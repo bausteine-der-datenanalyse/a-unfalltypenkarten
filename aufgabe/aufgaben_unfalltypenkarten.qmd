@@ -3,12 +3,6 @@ title: "Aufgaben zu Unfalltypenkarten"
 format: html
 ---
 
-# Datenquellen
-
-Die statistischen Ämter des Bundes und der Länder erheben und veröffentlichen mit der Straßenverkehrsunfallstatistik die Verkehrsunfälle mit Personenschaden oder Sachschaden in Deutschland. Im [Unfallatlas](https://unfallatlas.statistikportal.de/) werden Unfälle mit Personenschaden geführt. Für die Sicherheitsanalyse von Verkehrsnetzen können diese Daten verwendet und analysiert werden.
-
-Verwenden Sie für das Straßennetz die Daten des Bundesinformationssystems Straße (BISStra) der Bundesanstalt für Straßen- und Verkehrswesen (BASt): <https://www.bast.de/DE/Verkehrstechnik/Fachthemen/v2-bisstra.html>
-
 Versuchen sie bei den nachfolgenden Aufgaben zu Unfalltypenkarten weitestgehend die Vorgaben der Forschungsgesellschaft für Straßen- und
 Verkehrswesen (FGSV) des “Merkblattes zur Örtlichen Unfalluntersuchung in Unfallkommissionen”
 (M Uko) umzusetzen.

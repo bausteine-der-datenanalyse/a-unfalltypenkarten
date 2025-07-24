@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="de" xml:lang="de"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.5.56">
+<meta name="generator" content="quarto-1.4.549">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>1&nbsp; Aufgaben zu Unfalltypenkarten – Anwendungsbaustein Unfalltypenkarten</title>
+<title>Anwendungsbaustein Unfalltypenkarten - 1&nbsp; Aufgaben zu Unfalltypenkarten</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -79,13 +79,13 @@ ul.task-list li input[type="checkbox"] {
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Seitenleiste umschalten" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Seitenleiste umschalten" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
         <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../aufgabe/aufgaben_unfalltypenkarten.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Aufgaben zu Unfalltypenkarten</span></a></li></ol></nav>
-        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Seitenleiste umschalten" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Seitenleiste umschalten" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
-      <button type="button" class="btn quarto-search-button" aria-label="Suchen" onclick="window.quartoOpenSearch();">
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
     </div>
@@ -147,12 +147,9 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Inhaltsverzeichnis</h2>
    
   <ul>
-  <li><a href="#datenquellen" id="toc-datenquellen" class="nav-link active" data-scroll-target="#datenquellen"><span class="header-section-number">2</span> Datenquellen</a>
-  <ul class="collapse">
-  <li><a href="#aufgabe-1-unfalltypenkarten" id="toc-aufgabe-1-unfalltypenkarten" class="nav-link" data-scroll-target="#aufgabe-1-unfalltypenkarten"><span class="header-section-number">2.1</span> Aufgabe 1 : Unfalltypenkarten</a></li>
-  <li><a href="#aufgabe-2-unfallhäufungsstellen" id="toc-aufgabe-2-unfallhäufungsstellen" class="nav-link" data-scroll-target="#aufgabe-2-unfallhäufungsstellen"><span class="header-section-number">2.2</span> Aufgabe 2 : Unfallhäufungsstellen</a></li>
-  <li><a href="#aufgabe-3-interaktive-leaflet-karte-mit-shiny" id="toc-aufgabe-3-interaktive-leaflet-karte-mit-shiny" class="nav-link" data-scroll-target="#aufgabe-3-interaktive-leaflet-karte-mit-shiny"><span class="header-section-number">2.3</span> Aufgabe 3: Interaktive <code>Leaflet</code>-Karte mit <code>Shiny</code></a></li>
-  </ul></li>
+  <li><a href="#aufgabe-1-unfalltypenkarten" id="toc-aufgabe-1-unfalltypenkarten" class="nav-link active" data-scroll-target="#aufgabe-1-unfalltypenkarten"><span class="header-section-number">1.1</span> Aufgabe 1 : Unfalltypenkarten</a></li>
+  <li><a href="#aufgabe-2-unfallhäufungsstellen" id="toc-aufgabe-2-unfallhäufungsstellen" class="nav-link" data-scroll-target="#aufgabe-2-unfallhäufungsstellen"><span class="header-section-number">1.2</span> Aufgabe 2 : Unfallhäufungsstellen</a></li>
+  <li><a href="#aufgabe-3-interaktive-leaflet-karte-mit-shiny" id="toc-aufgabe-3-interaktive-leaflet-karte-mit-shiny" class="nav-link" data-scroll-target="#aufgabe-3-interaktive-leaflet-karte-mit-shiny"><span class="header-section-number">1.3</span> Aufgabe 3: Interaktive <code>Leaflet</code>-Karte mit <code>Shiny</code></a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarten/blob/main/aufgabe/aufgaben_unfalltypenkarten.qmd" class="toc-action"><i class="bi bi-github"></i>Quellcode anzeigen</a></li></ul></div></nav>
     </div>
@@ -178,24 +175,20 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="datenquellen" class="level1" data-number="2">
-<h1 data-number="2"><span class="header-section-number">2</span> Datenquellen</h1>
-<p>Die statistischen Ämter des Bundes und der Länder erheben und veröffentlichen mit der Straßenverkehrsunfallstatistik die Verkehrsunfälle mit Personenschaden oder Sachschaden in Deutschland. Im <a href="https://unfallatlas.statistikportal.de/">Unfallatlas</a> werden Unfälle mit Personenschaden geführt. Für die Sicherheitsanalyse von Verkehrsnetzen können diese Daten verwendet und analysiert werden.</p>
-<p>Verwenden Sie für das Straßennetz die Daten des Bundesinformationssystems Straße (BISStra) der Bundesanstalt für Straßen- und Verkehrswesen (BASt): <a href="https://www.bast.de/DE/Verkehrstechnik/Fachthemen/v2-bisstra.html" class="uri">https://www.bast.de/DE/Verkehrstechnik/Fachthemen/v2-bisstra.html</a></p>
 <p>Versuchen sie bei den nachfolgenden Aufgaben zu Unfalltypenkarten weitestgehend die Vorgaben der Forschungsgesellschaft für Straßen- und Verkehrswesen (FGSV) des “Merkblattes zur Örtlichen Unfalluntersuchung in Unfallkommissionen” (M Uko) umzusetzen.</p>
-<section id="aufgabe-1-unfalltypenkarten" class="level2" data-number="2.1">
-<h2 data-number="2.1" class="anchored" data-anchor-id="aufgabe-1-unfalltypenkarten"><span class="header-section-number">2.1</span> Aufgabe 1 : Unfalltypenkarten</h2>
+<section id="aufgabe-1-unfalltypenkarten" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="aufgabe-1-unfalltypenkarten"><span class="header-section-number">1.1</span> Aufgabe 1 : Unfalltypenkarten</h2>
 <ul>
 <li><p>Erstellen Sie nach den Vorgaben der M Uko eine Unfalltypenkarte für eine ausgewählte Autobahn und für Gesamtdeutschland eine Unfalltypenkarte mit <code>ggplot</code> für Unfälle im Jahr 2022.</p></li>
 <li><p>Erstellen Sie nach den Vorgaben der M Uko eine Unfalltypenkarte für eine ausgewählte Autobahn und für Gesamtdeutschland eine Unfalltypenkarte mit <code>leaflet</code> für Unfälle im Jahr 2022.</p></li>
 </ul>
 </section>
-<section id="aufgabe-2-unfallhäufungsstellen" class="level2" data-number="2.2">
-<h2 data-number="2.2" class="anchored" data-anchor-id="aufgabe-2-unfallhäufungsstellen"><span class="header-section-number">2.2</span> Aufgabe 2 : Unfallhäufungsstellen</h2>
+<section id="aufgabe-2-unfallhäufungsstellen" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="aufgabe-2-unfallhäufungsstellen"><span class="header-section-number">1.2</span> Aufgabe 2 : Unfallhäufungsstellen</h2>
 <p>Überprüfen Sie nach den Vorgaben der M Uko Unfallhäufungsstellen für die Stadt Bochum.</p>
 </section>
-<section id="aufgabe-3-interaktive-leaflet-karte-mit-shiny" class="level2" data-number="2.3">
-<h2 data-number="2.3" class="anchored" data-anchor-id="aufgabe-3-interaktive-leaflet-karte-mit-shiny"><span class="header-section-number">2.3</span> Aufgabe 3: Interaktive <code>Leaflet</code>-Karte mit <code>Shiny</code></h2>
+<section id="aufgabe-3-interaktive-leaflet-karte-mit-shiny" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="aufgabe-3-interaktive-leaflet-karte-mit-shiny"><span class="header-section-number">1.3</span> Aufgabe 3: Interaktive <code>Leaflet</code>-Karte mit <code>Shiny</code></h2>
 <p>Erstellen Sie eine interaktive Leaflet-Karte der Unfälle in Bochum in Shiny. Die Interaktivität soll folgendermaßen gestaltet werden:</p>
 <ul>
 <li>Wählbare Unfallkategorien</li>
@@ -207,7 +200,6 @@ ul.task-list li input[type="checkbox"] {
 <p><em>Optional</em> : Ein Download-Button für die gewählten Filtereinstellungen, der eine CSV-Datei erzeugt und herunterlädt.</p>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
@@ -246,7 +238,18 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const onCopySuccess = function(e) {
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -278,47 +281,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
-  }
-  const getTextToCopy = function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-  }
-  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
-    text: getTextToCopy
   });
-  clipboard.on('success', onCopySuccess);
-  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
-    // For code content inside modals, clipBoardJS needs to be initialized with a container option
-    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
-    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
-      text: getTextToCopy,
-      container: window.document.getElementById('quarto-embedded-source-code-modal')
-    });
-    clipboardModal.on('success', onCopySuccess);
-  }
-    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
-    var mailtoRegex = new RegExp(/^mailto:/);
-      var filterRegex = new RegExp('/' + window.location.host + '/');
-    var isInternal = (href) => {
-        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
-    }
-    // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
-    for (var i=0; i<links.length; i++) {
-      const link = links[i];
-      if (!isInternal(link.href)) {
-        // undo the damage that might have been done by quarto-nav.js in the case of
-        // links that we want to consider external
-        if (link.dataset.originalHref !== undefined) {
-          link.href = link.dataset.originalHref;
-        }
-      }
-    }
   function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
@@ -353,11 +316,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      if (note) {
-        return note.innerHTML;
-      } else {
-        return "";
-      }
+      return note.innerHTML;
     });
   }
   const xrefs = window.document.querySelectorAll('a.quarto-xref');
@@ -633,12 +592,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../index.html" class="pagination-link" aria-label="Einleitung">
+      <a href="../index.html" class="pagination-link  aria-label=" einleitung"="">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Einleitung</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../musterloesung.html" class="pagination-link" aria-label="Musterlösung Unfalltypenkarten">
+      <a href="../musterloesung.html" class="pagination-link" aria-label="<span class='chapter-number'>2</span>&nbsp; <span class='chapter-title'>Musterlösung Unfalltypenkarten</span>">
         <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Musterlösung Unfalltypenkarten</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>

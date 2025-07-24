@@ -34,7 +34,7 @@
     "href": "index.html#verwendete-datensätze",
     "title": "Anwendungsbaustein Unfalltypenkarten",
     "section": "Verwendete Datensätze",
-    "text": "Verwendete Datensätze\nDaten des Straßennetzes des Bundesinformationssystem Straße (BISStra)\nUnfalldaten des Unfallatlas des Statistischen Bundesamts",
+    "text": "Verwendete Datensätze\nDie statistischen Ämter des Bundes und der Länder erheben und veröffentlichen mit der Straßenverkehrsunfallstatistik die Verkehrsunfälle mit Personenschaden oder Sachschaden in Deutschland. Im Unfallatlas werden Unfälle mit Personenschaden geführt. Für die Sicherheitsanalyse von Verkehrsnetzen können diese Daten verwendet und analysiert werden.\nVerwenden Sie für das Straßennetz die Daten des Bundesinformationssystems Straße (BISStra) der Bundesanstalt für Straßen- und Verkehrswesen (BASt): https://www.bast.de/DE/Verkehrstechnik/Fachthemen/v2-bisstra.html\nDaten des Straßennetzes des Bundesinformationssystem Straße (BISStra)\nUnfalldaten des Unfallatlas des Statistischen Bundesamts",
     "crumbs": [
       "Einleitung"
     ]
@@ -44,7 +44,7 @@
     "href": "aufgabe/aufgaben_unfalltypenkarten.html",
     "title": "1  Aufgaben zu Unfalltypenkarten",
     "section": "",
-    "text": "2 Datenquellen\nDie statistischen Ämter des Bundes und der Länder erheben und veröffentlichen mit der Straßenverkehrsunfallstatistik die Verkehrsunfälle mit Personenschaden oder Sachschaden in Deutschland. Im Unfallatlas werden Unfälle mit Personenschaden geführt. Für die Sicherheitsanalyse von Verkehrsnetzen können diese Daten verwendet und analysiert werden.\nVerwenden Sie für das Straßennetz die Daten des Bundesinformationssystems Straße (BISStra) der Bundesanstalt für Straßen- und Verkehrswesen (BASt): https://www.bast.de/DE/Verkehrstechnik/Fachthemen/v2-bisstra.html\nVersuchen sie bei den nachfolgenden Aufgaben zu Unfalltypenkarten weitestgehend die Vorgaben der Forschungsgesellschaft für Straßen- und Verkehrswesen (FGSV) des “Merkblattes zur Örtlichen Unfalluntersuchung in Unfallkommissionen” (M Uko) umzusetzen.",
+    "text": "1.1 Aufgabe 1 : Unfalltypenkarten",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Aufgaben zu Unfalltypenkarten</span>"
     ]
@@ -53,8 +53,8 @@
     "objectID": "aufgabe/aufgaben_unfalltypenkarten.html#aufgabe-1-unfalltypenkarten",
     "href": "aufgabe/aufgaben_unfalltypenkarten.html#aufgabe-1-unfalltypenkarten",
     "title": "1  Aufgaben zu Unfalltypenkarten",
-    "section": "2.1 Aufgabe 1 : Unfalltypenkarten",
-    "text": "2.1 Aufgabe 1 : Unfalltypenkarten\n\nErstellen Sie nach den Vorgaben der M Uko eine Unfalltypenkarte für eine ausgewählte Autobahn und für Gesamtdeutschland eine Unfalltypenkarte mit ggplot für Unfälle im Jahr 2022.\nErstellen Sie nach den Vorgaben der M Uko eine Unfalltypenkarte für eine ausgewählte Autobahn und für Gesamtdeutschland eine Unfalltypenkarte mit leaflet für Unfälle im Jahr 2022.",
+    "section": "",
+    "text": "Erstellen Sie nach den Vorgaben der M Uko eine Unfalltypenkarte für eine ausgewählte Autobahn und für Gesamtdeutschland eine Unfalltypenkarte mit ggplot für Unfälle im Jahr 2022.\nErstellen Sie nach den Vorgaben der M Uko eine Unfalltypenkarte für eine ausgewählte Autobahn und für Gesamtdeutschland eine Unfalltypenkarte mit leaflet für Unfälle im Jahr 2022.",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Aufgaben zu Unfalltypenkarten</span>"
     ]
@@ -63,8 +63,8 @@
     "objectID": "aufgabe/aufgaben_unfalltypenkarten.html#aufgabe-2-unfallhäufungsstellen",
     "href": "aufgabe/aufgaben_unfalltypenkarten.html#aufgabe-2-unfallhäufungsstellen",
     "title": "1  Aufgaben zu Unfalltypenkarten",
-    "section": "2.2 Aufgabe 2 : Unfallhäufungsstellen",
-    "text": "2.2 Aufgabe 2 : Unfallhäufungsstellen\nÜberprüfen Sie nach den Vorgaben der M Uko Unfallhäufungsstellen für die Stadt Bochum.",
+    "section": "1.2 Aufgabe 2 : Unfallhäufungsstellen",
+    "text": "1.2 Aufgabe 2 : Unfallhäufungsstellen\nÜberprüfen Sie nach den Vorgaben der M Uko Unfallhäufungsstellen für die Stadt Bochum.",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Aufgaben zu Unfalltypenkarten</span>"
     ]
@@ -73,8 +73,8 @@
     "objectID": "aufgabe/aufgaben_unfalltypenkarten.html#aufgabe-3-interaktive-leaflet-karte-mit-shiny",
     "href": "aufgabe/aufgaben_unfalltypenkarten.html#aufgabe-3-interaktive-leaflet-karte-mit-shiny",
     "title": "1  Aufgaben zu Unfalltypenkarten",
-    "section": "2.3 Aufgabe 3: Interaktive Leaflet-Karte mit Shiny",
-    "text": "2.3 Aufgabe 3: Interaktive Leaflet-Karte mit Shiny\nErstellen Sie eine interaktive Leaflet-Karte der Unfälle in Bochum in Shiny. Die Interaktivität soll folgendermaßen gestaltet werden:\n\nWählbare Unfallkategorien\nWählbare Unfalltypen\nWählbare Verkehrsbeteiligte\nWählbare Jahre\n\nZusätzlich soll unter der Karte eine Tabelle mit den gewählten Filtern dargestellt werden.\nOptional : Ein Download-Button für die gewählten Filtereinstellungen, der eine CSV-Datei erzeugt und herunterlädt.",
+    "section": "1.3 Aufgabe 3: Interaktive Leaflet-Karte mit Shiny",
+    "text": "1.3 Aufgabe 3: Interaktive Leaflet-Karte mit Shiny\nErstellen Sie eine interaktive Leaflet-Karte der Unfälle in Bochum in Shiny. Die Interaktivität soll folgendermaßen gestaltet werden:\n\nWählbare Unfallkategorien\nWählbare Unfalltypen\nWählbare Verkehrsbeteiligte\nWählbare Jahre\n\nZusätzlich soll unter der Karte eine Tabelle mit den gewählten Filtern dargestellt werden.\nOptional : Ein Download-Button für die gewählten Filtereinstellungen, der eine CSV-Datei erzeugt und herunterlädt.",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Aufgaben zu Unfalltypenkarten</span>"
     ]
