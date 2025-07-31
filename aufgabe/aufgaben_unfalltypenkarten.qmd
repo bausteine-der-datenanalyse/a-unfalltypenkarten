@@ -9,13 +9,13 @@ Verkehrswesen (FGSV) des “Merkblattes zur Örtlichen Unfalluntersuchung in Unf
 
 ## Aufgabe 1 : Unfalltypenkarten
 
-- Erstellen Sie nach den Vorgaben der M Uko eine Unfalltypenkarte für eine ausgewählte Autobahn und für Gesamtdeutschland eine Unfalltypenkarte mit `ggplot` für Unfälle im Jahr 2022.
+- Erstellen Sie nach den Vorgaben der M Uko eine Unfalltypenkarte für eine ausgewählte Autobahn und für Gesamtdeutschland eine Unfalltypenkarte mit `ggplot` für Unfälle in einem beliebigem Jahr.
 
-- Erstellen Sie nach den Vorgaben der M Uko eine Unfalltypenkarte für eine ausgewählte Autobahn und für Gesamtdeutschland eine Unfalltypenkarte mit `leaflet` für Unfälle im Jahr 2022.
+- Erstellen Sie nach den Vorgaben der M Uko eine Unfalltypenkarte für eine ausgewählte Autobahn und für Gesamtdeutschland eine Unfalltypenkarte mit `leaflet` für Unfälle in einem beliebigem Jahr.
 
 ## Aufgabe 2 : Unfallhäufungsstellen
 
-Überprüfen Sie nach den Vorgaben der M Uko Unfallhäufungsstellen für die Stadt Bochum.
+Überprüfen Sie nach den Vorgaben der M Uko Unfallhäufungsstellen für eine beliebige Stadt.
 
 ## Aufgabe 3: Interaktive `Leaflet`-Karte mit `Shiny`
 
