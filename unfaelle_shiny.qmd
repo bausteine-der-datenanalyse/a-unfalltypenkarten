@@ -174,7 +174,7 @@ output$table <- renderTable({
 
 Bochum_tbl <- Bochum_Filter() %>% 
   group_by(UJAHR, UMONAT) %>% 
-  summarise(PKWUnfälle = sum(IstPKW == "1") , Radfahrerunfälle = sum(IstRad == "1") , Fußgängerunfälle = sum(IstFuss == "1")) %>%
+  summarise(PKW-Beteiligung = sum(IstPKW == "1") , Rad-Beteiligung = sum(IstRad == "1") , Fußgänger-Beteiligung = sum(IstFuss == "1")) %>%
   rename(Jahr = "UJAHR" , Monat = "UMONAT") %>%
   st_drop_geometry()
 

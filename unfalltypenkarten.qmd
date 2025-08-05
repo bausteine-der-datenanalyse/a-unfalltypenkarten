@@ -235,7 +235,7 @@ Test_UHS <- bind_cols(Bochum_Unfall_3J,bo_dist_anzahl)
 Test_UHS_2 <- Test_UHS |>
   mutate(popup = paste0("Anzahl der Unfälle in der Nähe:", sum_unfall,
                                "<br/> Unfalltyp:", UTYP1) ,
-         popup_UHS = paste0("Hier liegt eine Unfallhäufungsstelle vor.",
+         popup_UHS = paste0("Hier liegt voraussichtlich eine Unfallhäufungsstelle vor.",
                                "<br/> Anzahl der Unfälle in der Nähe:", sum_unfall))
 ```
 
