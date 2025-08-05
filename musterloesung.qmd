@@ -20,8 +20,8 @@ library(leaflet)
 library(shiny)
 ```
 
-**Daten einlesen und aufbereiten**
 
+**Daten einlesen und aufbereiten**
 
 Deutschlandkarte:
 
@@ -105,6 +105,8 @@ unfaelle_de_autobahn = unfaelle_de |>
 
 ## Aufgabe 1
 
+**Für das wählbare Jahr wurde in dieser Musterlösung das Jahr 2022 gewählt.**
+
 ### Mit `ggplot`
 
 Ausgewählte Autobahn:
@@ -169,6 +171,8 @@ leaflet(unfaelle_de_autobahn) %>%
 ```
 
 ## Aufgabe 2
+
+**Für diese Aufgabe wurde exemplarisch die Stadt Bochum verwendet.**
 
 **Unfalldaten von 3 Jahren laden**
 
