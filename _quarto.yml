@@ -25,6 +25,7 @@ book:
     - aufgabe/aufgaben_unfalltypenkarten.qmd
     - musterloesung.qmd
     - unfalltypenkarten.qmd
+    - weitere_beispiele/weitere_beispiele.qmd
 
 format:
   html:

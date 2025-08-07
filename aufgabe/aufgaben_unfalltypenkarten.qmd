@@ -17,7 +17,7 @@ Verkehrswesen (FGSV) des “Merkblattes zur Örtlichen Unfalluntersuchung in Unf
 
 Überprüfen Sie nach den Vorgaben der M Uko Unfallhäufungsstellen für eine beliebige Stadt.
 
-## Aufgabe 3: Interaktive `Leaflet`-Karte mit `Shiny`
+## Optionale Aufgabe: Interaktive `Leaflet`-Karte mit `Shiny`
 
 Erstellen Sie eine interaktive Leaflet-Karte der Unfälle in Bochum in Shiny. 
 Die Interaktivität soll folgendermaßen gestaltet werden:

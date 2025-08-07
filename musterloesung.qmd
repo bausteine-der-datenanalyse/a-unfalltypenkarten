@@ -258,7 +258,7 @@ leaflet(Test_UHS_2) %>%
   addLegend("bottomright", colors = c("#04B431", "yellow",  "red", "white", "#00BFFF", "orange", "black") ,labels = c("Fahrunfall","Abbiege-Unfall", "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall","Unfall durch ruhenden verkehr", "Unfall im Längsverkehr", "Sonstiger Unfall"),title = "Unfalltypen")
 ```
 
-## Aufgabe 3
+## Optionale Aufgabe 
 
-Siehe Dokument unfaelle_shiny.qmd  
+Siehe das Kapitel *Weitere Anwendungsbeispiele* und die Datei `unfaelle_shiny.qmd`  
 
