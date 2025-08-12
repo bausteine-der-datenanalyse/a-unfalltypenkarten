@@ -2,7 +2,7 @@
 title: "Ausführliche Erläuterung zur Musterlösung"
 format: html
 execute:
-  cache: true
+  cache: false
 ---
 
 ```{r}
