@@ -34,8 +34,8 @@ read_unfaelle <- function(f) {
       OBJECTID = "OID_"
     ))) |>
     mutate(
-      UWOCHENTAG = wday(as.numeric(UWOCHENTAG), label=T),
-      UMONAT = month(as.numeric(UMONAT), label=T , abbr = FALSE)
+      UWOCHENTAG = lubridate::wday(as.numeric(UWOCHENTAG), label=TRUE),
+      UMONAT = lubridate::month(as.numeric(UMONAT), label=TRUE , abbr = FALSE)
     )
 }
 
@@ -174,7 +174,10 @@ output$table <- renderTable({
 
 Bochum_tbl <- Bochum_Filter() %>% 
   group_by(UJAHR, UMONAT) %>% 
-  summarise(PKW-Beteiligung = sum(IstPKW == "1") , Rad-Beteiligung = sum(IstRad == "1") , Fußgänger-Beteiligung = sum(IstFuss == "1")) %>%
+  summarise(
+    `PKW-Beteiligung` = sum(IstPKW == "1") , 
+    `Rad-Beteiligung` = sum(IstRad == "1") , 
+    `Fußgänger-Beteiligung` = sum(IstFuss == "1")) %>%
   rename(Jahr = "UJAHR" , Monat = "UMONAT") %>%
   st_drop_geometry()
 
