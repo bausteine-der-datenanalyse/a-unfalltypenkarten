@@ -10,3 +10,5 @@
 /unfalltypenkarten_files/figure-html
 unfaelle_shiny.html
 /unfaelle_shiny_files
+
+**/*.quarto_ipynb

@@ -46,7 +46,7 @@ und des Werkzeugbausteins Datenmanagements \[Referenz\]
 ## Lernziele
 
 Ziel dieses Bausteins ist es, typische Inhalte von Unfalltypenkarten in grafischer Form mithilfe der
-Programmiersprache R darzustellen. Dabei lernen Sie wo deutschsprachige
+Programmiersprache R darzustellen. Dabei lernen Sie, wo deutschsprachige
 Unfalldaten gefunden werden können, wie Unfalldaten eingelesen und
 analysiert werden und welche verschiedenen Darstellungsformen sich für
 bestimmte Datentypen eignen.
@@ -55,10 +55,10 @@ bestimmte Datentypen eignen.
 
 Die statistischen Ämter des Bundes und der Länder erheben und veröffentlichen mit der Straßenverkehrsunfallstatistik die Verkehrsunfälle mit Personenschaden oder Sachschaden in Deutschland. Im [Unfallatlas](https://unfallatlas.statistikportal.de/) werden Unfälle mit Personenschaden geführt. Für die Sicherheitsanalyse von Verkehrsnetzen können diese Daten verwendet und analysiert werden.
 
-Verwenden Sie für das Straßennetz die Daten des Bundesinformationssystems Straße (BISStra) der Bundesanstalt für Straßen- und Verkehrswesen (BASt): <https://www.bast.de/DE/Verkehrstechnik/Fachthemen/v2-bisstra.html>
+Verwenden Sie für das Straßennetz die Daten des Bundesinformationssystems Straße (BISStra) der Bundesanstalt für Straßen- und Verkehrswesen (BASt): <https://www.bast.de/DE/Themen/Digitales/HF_1/Massnahmen/bisstra-datenerfassung.html>
 
 [Daten des Straßennetzes des Bundesinformationssystem Straße
-(BISStra)](https://www.bast.de/DE/Verkehrstechnik/Fachthemen/v2-bisstra.html)
+(BISStra)](https://www.bast.de/DE/Themen/Digitales/HF_1/Massnahmen/bisstra-datenerfassung.html)
 
 [Unfalldaten des Unfallatlas des Statistischen
 Bundesamts](https://unfallatlas.statistikportal.de/)
