@@ -304,16 +304,35 @@ Datensätze kombinieren:
 unfaelle_3j <- bind_rows(unfaelle_2024, unfaelle_2023, unfaelle_2022)
 ```
 
-Unfälle im Bochumer Stadtgebiet nach Gemeindeschlüssel der Stadt Bochum (05 9 11 000)
+Unfälle im Bochumer Stadtgebiet nach Gemeindeschlüssel der Stadt Bochum (05 9 11 000) 05 = NRW, 9 = Regierungsbezirkarnsberg, ...
 
 ```{r}
-unfaelle_bochum <- unfaelle_3j |>
+unfaelle_bochum_3j <- unfaelle_3j |>
   filter(
     ULAND == "05",
     UREGBEZ == "9",
     UKREIS == "11",
     UGEMEINDE == "000"
   )
+
+set.seed(123)
+unfaelle_bochum_3j <- unfaelle_bochum_3j |>
+  mutate(
+    XGCSWGS84_jitter = XGCSWGS84 + runif(n(), -0.0002, 0.0002),
+    YGCSWGS84_jitter = YGCSWGS84 + runif(n(), -0.0002, 0.0002)
+  )
+```
+
+Alle Unfälle auf Autobahnen (bzw. im 20 m Radius um die Bestandstrecke) abziehen, da wir uns nur Stadtstraßen anschauen wollen
+
+```{r}
+unfaelle_bochum_stadtstrassen_3j = unfaelle_bochum_3j |>
+    mutate(
+      nearest_autobahn_id = st_nearest_feature(geometry, bfstn),
+      nearest_autobahn_distance = st_distance(geometry, bfstn[nearest_autobahn_id, ], by_element = TRUE),
+      nearest_autobahn_name = bfstn$Str_Kennung[nearest_autobahn_id]
+    ) |>
+  filter(as.double(nearest_autobahn_distance) > 20)
 ```
 
 Bochums Stadtgrenzen (über open.nrw: https://open.nrw/dataset/bochum-stadtgebiet-stadtgrenze-rvr)
@@ -328,7 +347,7 @@ Eine Unfallhäufungsstelle (UHS) innerorts ist nach dem M Uko (FGSV (2012)) wie 
 - An Knoten innerhalb von 50 m Ausdehnung von der Fahrbahnachse
 - Auf der freien Strecke maximal 50 m ab Knoteneinfluss
 
-Dies ist bildlich verdeutlicht auf Seite 15, Bild 19.
+(Dies ist bildlich verdeutlicht auf Seite 15, Bild 19.)
 
 ### Ermittlung von Knoten und Kanten mit 50 m Ausdehnung
 
@@ -371,7 +390,130 @@ knoten <- st_as_sf(strassennetz, "nodes") |>
   st_intersection(bochum_stadtgebiet) |>
   st_transform(crs = 25832)
 ```
----> Fehler
+
+Knoten plus 50 m Puffer (gerade überflüssig)
+
+```{r}
+#knoten_25m <- st_buffer(knoten, dist = 25)
+```
+
+Unfälle an Knoten innerhalb von 50 m Umkreis
+
+```{r}
+unfaelle_an_knoten <- unfaelle_bochum_stadtstrassen_3j |>
+  mutate(
+    knoten_id = st_nearest_feature(geometry, knoten),
+    distanz = as.numeric(st_distance(geometry, knoten[knoten_id, ], by_element = TRUE))
+  ) |>
+  filter(distanz <= 50) |>
+  group_by(knoten_id) |>
+  summarise(anzahl_unfaelle = n())
+```
+
+Unfallhäufungsstellen an Knoten identifizieren (Anzahl Unfälle >= 5)
+
+```{r}
+knoten_uhs <- knoten |>
+  mutate(knoten_id = row_number()) |>
+  inner_join(st_drop_geometry(unfaelle_an_knoten), by = "knoten_id") |>
+  filter(anzahl_unfaelle >= 5)
+```
+
+
+Unfälle an Kanten
+
+```{r}
+unfaelle_kanten <- st_disjoin(unfaelle_bochum, st_union(knoten_25m))
+```
+
+```{r}
+bochum_stadtgebiet <- st_transform(bochum_stadtgebiet, crs = 25832)
+
+ggplot() +
+  geom_sf(data = bochum_stadtgebiet) +
+  geom_sf(data = knoten_uhs, size = 4, alpha = .5) +
+  geom_sf(
+    data = unfaelle_bochum_stadtstrassen_3j,
+    mapping = aes(
+      group = UTYP1,
+      colour = as.character(UTYP1)), 
+      size = 1.5) +
+  scale_colour_manual(name = "Unfalltyp", values = farben_utyp, labels = c("Fahrunfall","Abbiege-Unfall", "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall","Unfall durch ruhenden Verkehr", "Unfall im Längsverkehr", "Sonstiger Unfall"))
+```
+
+```{r}
+knoten_uhs_leaf <- st_transform(knoten_uhs, crs = '+proj=longlat +datum=WGS84') |>
+  st_centroid() |>
+  filter(!is.na(knoten_id))
+```
+
+
+```{r}
+leaflet() |>   
+  addProviderTiles(providers$Stadia.AlidadeSmooth) |>
+  addCircles(
+    data = knoten_uhs_leaf,
+    radius = 50,
+    fillOpacity = .5,
+    color = "pink",
+    popup = ~paste("Anzahl Unfälle:", anzahl_unfaelle)) |>
+  addCircleMarkers(
+    data = unfaelle_bochum_stadtstrassen_3j,
+    lng = ~XGCSWGS84_jitter, lat = ~YGCSWGS84_jitter,
+    radius = 3,
+    color = ~farben_utyp_leaf(UTYP1), opacity = 0.7,
+    fillColor = ~farben_utyp_leaf(UTYP1), fillOpacity = 0.7,
+    popup = ~paste("Unfallkategorie:", UKATEGORIE, "<br>Unfalltyp:", UTYP1)
+  ) |>
+  addLegend(
+    position = "bottomright",
+    colors = c("green", "yellow",  "red", "lightgrey", "blue", "orange", "black"), labels = c("Fahrunfall","Abbiege-Unfall",
+    "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall","Unfall durch ruhenden Verkehr", "Unfall im Längsverkehr", 
+    "Sonstiger Unfall"),
+    title = "Unfalltyp",
+    opacity = 1
+  )
+```
+
+
+
+leaflet() |>   
+  addTiles() |>
+    addCircleMarkers(data = knoten_uhs_leaf,
+                     radius = 5,
+                     fillOpacity = .5,
+                     color = "pink") |>
+    addCircleMarkers(data = unfaelle_bochum_stadtstrassen_3j,
+                     lng = ~XGCSWGS84, lat = ~YGCSWGS84,
+                     radius = 3,
+                     fillOpacity = 0.9,
+                     fillColor = ~farben_utyp_leaf(UTYP1),
+                     popup = ~as.character(UIDENTSTLAE)) |>
+  addMeasure(primaryLengthUnit = "meters") |>
+  addLegend("bottomright", colors = c("#04B431", "yellow",  "red", "white", "#00BFFF", "orange", "black") ,labels = c("Fahrunfall","Abbiege-Unfall", "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall","Unfall durch ruhenden verkehr", "Unfall im Längsverkehr", "Sonstiger Unfall"),title = "Unfalltypen")
+
+
+
+
+
+-------------------------------------
+
+
+
+
+
+
+
+
+
+Bochum als Bounding Box:
+
+```{r}
+#d_bochum <- gisco_get_nuts(nuts_id = "DEA51", nuts_level = 3, resolution = 03)|> st_transform(25832)
+
+#unfaelle_bochum <- unfaelle_3j |>
+    #filter(st_contains(d_bochum, unfaelle_3j, sparse = FALSE)[1,])
+```
 
 ```{r}
 osm <- opq(bbox = getbb("Bochum, Germany"), timeout = 120)
@@ -412,78 +554,11 @@ knoten <- st:inter
 --> wie stadtgebiet einbeziehen?, aktuell überflüssig
 
 
-Knoten plus 50 m Puffer
-
-```{r}
-knoten_50m <- st_buffer(knoten, dist = 50)
-```
-
-Unfälle an Knoten innerhalb von 50 m Umkreis
-
-```{r}
-unfaelle_an_knoten <- st_join(unfaelle_bochum, knoten_50m, join = st_intersects) |>
-  rename(knoten_id = .tidygraph_node_index) |>
-  group_by(knoten_id) |>
-  summarise(anzahl_unfaelle = n())
-```
-
-Unfallhäufungsstellen an Knoten identifizieren (Anzahl Unfälle >= 5)
-
-```{r}
-knoten_uhs <- unfaelle_an_knoten |>
-  filter(anzahl_unfaelle >= 5)
-```
-
-
-Unfälle an Kanten
-
-```{r}
-unfaelle_kanten <- st_disjoin(unfaelle_bochum, st_union(knoten_50m))
-```
-
-```{r}
-bochum_stadtgebiet <- st_transform(bochum_stadtgebiet, crs = 25832)
-
-ggplot() +
-  geom_sf(data = bochum_stadtgebiet) +
-  geom_sf(data = knoten_uhs)
-
-```
-
-
-
-
-
-
-
-
-
--------------------------------------
-
-
-
-
-
-
-
-
-
-Bochum als Bounding Box:
-
-```{r}
-#d_bochum <- gisco_get_nuts(nuts_id = "DEA51", nuts_level = 3, resolution = 03)|> st_transform(25832)
-
-#unfaelle_bochum <- unfaelle_3j |>
-    #filter(st_contains(d_bochum, unfaelle_3j, sparse = FALSE)[1,])
-```
-
-
-
 
 
 Leafletkarte von Bochum im Jahr 2022 (an dieser stelle unnötig?)
 
-#```{r}
+```{r}
 leaflet(unfaelle_bochum) |>   
   addTiles() |>
     addCircleMarkers(lng = ~XGCSWGS84, lat = ~YGCSWGS84,
