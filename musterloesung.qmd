@@ -29,7 +29,7 @@ Deutschlandkarte laden:
 d_de <- gisco_get_nuts(country = "Germany", nuts_level = 0, resolution = 03)
 ```
 
-Unfalldaten einlesen, hier aus dem Jahr 2022:
+Unfalldaten (Deutschland, hier aus 2022) einlesen:
 
 ```{{r}}
 #| warning: false
@@ -39,7 +39,7 @@ unfaelle <- st_as_sf(unfall_csv, coords = c("LINREFX", "LINREFY"),
                   crs = 25832)
 ```
 
-Streckenabschnitte einlesen:
+Streckenabschnitte (Deutschland) einlesen:
 
 ```{{r}}
 strecke <- read_sf("data/geo/BFStr_Netz_SK.geojson")
@@ -65,7 +65,7 @@ strecke_de <- strecke |>
 
 ### A43
 
-Unfälle filtern:
+Unfälle ergänzen um am nächsten gelegene Autobahn:
 
 ```{{r}}
 unfaelle_43 = unfaelle %>%
@@ -75,7 +75,7 @@ unfaelle_43 = unfaelle %>%
 	mutate(nearest_autobahn_distance = st_distance(st_zm(.), a43[nearest_autobahn_id, ], by_element = TRUE))
 ```
 
-Alles nicht in der Nähe von A43 raus:
+Unfälle nach A43 filtern:
 
 ```{{r}}
 unfaelle_autobahn = unfaelle_43 |> 
@@ -85,7 +85,7 @@ unfaelle_autobahn = unfaelle_43 |>
 
 ### Deutschland
 
-Unfälle filtern:
+Unfälle ergänzen um am nächsten gelegene Autobahn:
 
 ```{{r}}
 unfaelle_de = unfaelle %>%
@@ -95,7 +95,7 @@ unfaelle_de = unfaelle %>%
 	mutate(nearest_autobahn_distance = st_distance(st_zm(.), strecke_de[nearest_autobahn_id, ], by_element = TRUE))
 ```
 
-Alles nicht in der Nähe von BAB raus:
+Unfälle nach Autobahnen filtern:
 
 ```{{r}}
 unfaelle_de_autobahn = unfaelle_de |> 
@@ -109,7 +109,7 @@ unfaelle_de_autobahn = unfaelle_de |>
 
 ### Mit `ggplot`
 
-Ausgewählte Autobahn:
+Ausgewählte Autobahn (A43):
 
 ```{{r}}
 ggplot () +
@@ -143,7 +143,7 @@ ggplot () +
 pal <- colorFactor(c("#04B431", "yellow",  "red", "white", "#00BFFF", "orange", "black"), domain = c(1,2,3,4,5,6,7))
 ```
 
-Ausgewählte Autobahn:
+Ausgewählte Autobahn (A43):
 
 ```{{r}}
 leaflet(unfaelle_autobahn) %>%   
@@ -174,7 +174,7 @@ leaflet(unfaelle_de_autobahn) %>%
 
 **Für diese Aufgabe wurde exemplarisch die Stadt Bochum verwendet.**
 
-**Unfalldaten von 3 Jahren laden**
+**Unfalldaten von drei aufeinanderfolgenden Jahren laden**
 
 ```{{r}}
 #| warning: false
@@ -182,12 +182,14 @@ unfall_csv23 = read_csv2("data/Unfallorte2023_LinRef.csv")
 unfaelle_23 <- st_as_sf(unfall_csv23, coords = c("LINREFX", "LINREFY"), 
                  crs = 25832)
 
+# Die Unfalldaten aus 2022 haben wir vorhin schon geladen (unfaelle)
+
 unfall_csv21 = read_csv2("data/Unfallorte2022_LinRef.csv") 
 unfaelle_21 <- st_as_sf(unfall_csv21, coords = c("LINREFX", "LINREFY"), 
                  crs = 25832)
 ```
 
-**Bochum Unfälle zur Erstellung einer Unfallhäufungsstelle**
+**Unfälle in Bochum zur Ermittlung von Unfallhäufungsstellen**
 
 Datensätze kombinieren:
 

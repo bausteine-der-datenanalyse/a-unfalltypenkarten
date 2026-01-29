@@ -3,39 +3,35 @@ title: "Aufgaben zu Unfalltypenkarten"
 format: html
 ---
 
-Versuchen Sie bei den nachfolgenden Aufgaben zu Unfalltypenkarten weitestgehend die Vorgaben der Forschungsgesellschaft für Straßen- und
-Verkehrswesen (FGSV) aus dem “Merkblatt zur Örtlichen Unfalluntersuchung in Unfallkommissionen” (M Uko) umzusetzen.
+Versuchen Sie bei den nachfolgenden Aufgaben zu Unfalltypenkarten weitestgehend die Vorgaben der Forschungsgesellschaft für Straßen- und Verkehrswesen (FGSV) aus dem “Merkblatt zur Örtlichen Unfalluntersuchung in Unfallkommissionen” (M Uko) umzusetzen.
 
 ## Aufgabe 1 : Unfalltypenkarten
 
-a. Erstellen Sie nach den Vorgaben des M Uko 
-- [ ] eine Unfalltypenkarte für eine ausgewählte Autobahn und 
-- [ ] eine Unfalltypenkarte für Gesamtdeutschland
+Erstellen Sie nach den Vorgaben des M Uko eine Unfalltypenkarte für
+- eine ausgewählte Autobahn und 
+- Gesamtdeutschland
 
-    mit `ggplot` für Unfälle in einem beliebigem Jahr.
+mit 
 
-[]{.down60}
+- `ggplot` und
+- `leaflet`
 
-b. Erstellen Sie nach den Vorgaben des M Uko 
-- [ ] eine Unfalltypenkarte für eine ausgewählte Autobahn und 
-- [ ] eine Unfalltypenkarte für Gesamtdeutschland
-
-    mit `leaflet` für Unfälle in einem beliebigem Jahr.
+für Unfälle in einem beliebigem Jahr. Welche Darstellungen halten Sie für geeignet?
 
 
 ## Aufgabe 2 : Unfallhäufungsstellen
 
-- [ ] Überprüfen Sie nach den Vorgaben des M Uko Unfallhäufungsstellen in einer beliebigen Stadt.
+- Überprüfen Sie nach den Vorgaben des M Uko Unfallhäufungsstellen in einer Dreijahreskarte in einer beliebigen Stadt.
 
 ## Optionale Aufgabe: Interaktive `leaflet`-Karte mit `Shiny`
 
 Erstellen Sie eine interaktive `leaflet`-Karte der Unfälle in Bochum in `Shiny`. 
 Die Interaktivität soll folgendermaßen gestaltet werden:
 
-- [ ]  Wählbare Unfallkategorien
-- [ ]  Wählbare Unfalltypen
-- [ ]  Wählbare Verkehrsbeteiligte
-- [ ]  Wählbare Jahre
+- [ ]  wählbare Unfallkategorien,
+- [ ]  wählbare Unfalltypen,
+- [ ]  wählbare Verkehrsbeteiligte und
+- [ ]  wählbare Jahre
 
 Zusätzlich soll unter der Karte eine Tabelle mit den gewählten Filtern dargestellt werden.
 
