@@ -1,5 +1,5 @@
 ---
-title: "Ausführliche Erläuterung zur Musterlösung"
+title: "Musterlösung mit Erläuterungen"
 format: html
 execute:
   cache: false
@@ -332,7 +332,8 @@ unfaelle_bochum_stadtstrassen_3j = unfaelle_bochum_3j |>
       nearest_autobahn_distance = st_distance(geometry, bfstn[nearest_autobahn_id, ], by_element = TRUE),
       nearest_autobahn_name = bfstn$Str_Kennung[nearest_autobahn_id]
     ) |>
-  filter(as.double(nearest_autobahn_distance) > 20)
+  filter(as.double(nearest_autobahn_distance) > 20) |>
+  select(OID_, UJAHR, UMONAT, USTUNDE, UKATEGORIE, UTYP1, IstPKW, IstRad, IstFuss, IstKrad, ULICHTVERH, IstStrassenzustand, XGCSWGS84_jitter, YGCSWGS84_jitter)
 ```
 
 Bochums Stadtgrenzen (über open.nrw: https://open.nrw/dataset/bochum-stadtgebiet-stadtgrenze-rvr)
@@ -423,22 +424,7 @@ knoten_uhs <- knoten |>
 Unfälle an Kanten
 
 ```{r}
-unfaelle_kanten <- st_disjoin(unfaelle_bochum, st_union(knoten_25m))
-```
-
-```{r}
-bochum_stadtgebiet <- st_transform(bochum_stadtgebiet, crs = 25832)
-
-ggplot() +
-  geom_sf(data = bochum_stadtgebiet) +
-  geom_sf(data = knoten_uhs, size = 4, alpha = .5) +
-  geom_sf(
-    data = unfaelle_bochum_stadtstrassen_3j,
-    mapping = aes(
-      group = UTYP1,
-      colour = as.character(UTYP1)), 
-      size = 1.5) +
-  scale_colour_manual(name = "Unfalltyp", values = farben_utyp, labels = c("Fahrunfall","Abbiege-Unfall", "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall","Unfall durch ruhenden Verkehr", "Unfall im Längsverkehr", "Sonstiger Unfall"))
+#unfaelle_kanten <- st_disjoin(unfaelle_bochum, st_union(knoten_25m))
 ```
 
 ```{r}
@@ -454,8 +440,8 @@ leaflet() |>
   addCircles(
     data = knoten_uhs_leaf,
     radius = 50,
-    fillOpacity = .5,
-    color = "pink",
+    fillOpacity = .7,
+    color = "purple",
     popup = ~paste("Anzahl Unfälle:", anzahl_unfaelle)) |>
   addCircleMarkers(
     data = unfaelle_bochum_stadtstrassen_3j,
@@ -463,8 +449,46 @@ leaflet() |>
     radius = 3,
     color = ~farben_utyp_leaf(UTYP1), opacity = 0.7,
     fillColor = ~farben_utyp_leaf(UTYP1), fillOpacity = 0.7,
-    popup = ~paste("Unfallkategorie:", UKATEGORIE, "<br>Unfalltyp:", UTYP1)
-  ) |>
+    popup = ~paste0(
+  "Unfall im ", 
+  ifelse(UMONAT == 01, "Januar", ""),
+  ifelse(UMONAT == 02, "Februar", ""),
+  ifelse(UMONAT == 03, "März", ""),
+  ifelse(UMONAT == 04, "April", ""),
+  ifelse(UMONAT == 05, "Mai", ""),
+  ifelse(UMONAT == 06, "Juni", ""),
+  ifelse(UMONAT == 07, "Juli", ""),
+  ifelse(UMONAT == 08, "August", ""),
+  ifelse(UMONAT == 09, "September", ""),
+  ifelse(UMONAT == 10, "Oktober", ""),
+  ifelse(UMONAT == 11, "November", ""),
+  ifelse(UMONAT == 12, "Dezember", "")," ", UJAHR, 
+  " um ", USTUNDE, " Uhr, ein ", 
+  ifelse(UTYP1 == 1, "Fahrunfall", ""),
+  ifelse(UTYP1 == 2, "Abbiege-Unfall", ""),
+  ifelse(UTYP1 == 3, "Einbiegen/Kreuzen-Unfall", ""),
+  ifelse(UTYP1 == 4, "Überschreiten-Unfall", ""),
+  ifelse(UTYP1 == 5, "Unfall durch ruhenden Verkehr", ""),
+  ifelse(UTYP1 == 6, "Unfall im Längsverkehr", ""),
+  ifelse(UTYP1 == 7, "Sonstiger Unfall", ""), 
+  " mit ", 
+  ifelse(UKATEGORIE == 1, "Getöteten", ""),
+  ifelse(UKATEGORIE == 2, "Schwerverletzten", ""),
+  ifelse(UKATEGORIE == 3, "Leichtverletzten", ""), 
+  ", mit der Beteiligung von ",
+  ifelse(IstPKW == 1, "Pkw", ""),
+  ifelse(IstRad == 1, ", Rad", ""),
+  ifelse(IstFuss == 1, ", Fußgänger", ""),
+  ifelse(IstKrad == 1, ", Krad", ""),
+  " bei ", 
+  ifelse(ULICHTVERH == 0, "Tageslicht", ""),
+  ifelse(ULICHTVERH == 1, "Dämmerung", ""),
+  ifelse(ULICHTVERH == 2, "Dunkelheit", ""), " und die Straße war ", 
+  ifelse(ULICHTVERH == 0, "trocken.", ""),
+  ifelse(ULICHTVERH == 1, "nass oder feucht.", ""),
+  ifelse(ULICHTVERH == 2, "winterglatt.", "")
+  )) |>
+  addAwesomeMarkers(data = knoten_uhs_leaf, icon = awesomeIcons(icon = "alert-circled", library = "ion", markerColor = "purple", iconColor = "black")) |>
   addLegend(
     position = "bottomright",
     colors = c("green", "yellow",  "red", "lightgrey", "blue", "orange", "black"), labels = c("Fahrunfall","Abbiege-Unfall",
@@ -474,6 +498,28 @@ leaflet() |>
     opacity = 1
   )
 ```
+
+
+```{r}
+kanten <- st_transform(kanten, crs = '+proj=longlat +datum=WGS84')
+
+leaflet() |>   
+  addProviderTiles(providers$Stadia.AlidadeSmooth) |>
+  addPolylines(data = kanten, color = "black", opacity = 1)
+```
+
+
+```{r}
+knoten <- st_transform(knoten, crs = '+proj=longlat +datum=WGS84')
+
+leaflet() |>   
+  addProviderTiles(providers$Stadia.AlidadeSmooth) |>
+  addCircles(data = knoten, radius = 1, color = "black")
+```
+
+
+
+
 
 
 
@@ -619,7 +665,7 @@ leaflet(Test_UHS_2) |>
 
 **Wichtige Anmerkung** 
 
-Der Code funktioniert. Allerdings stellt Leaflet nur einen Punkt bei exakt denselben Koordinaten dar. Beispielsweise mehrere Unfälle an dem Ort "POINT (378618.6 5701196)" stellt nur den aktuellsten Unfall dar.
+Der Code funktioniert. Allerdings stellt Leaflet nur einen Punkt bei exakt denselben Koordinaten dar. Beispielsweise mehrere Unfälle an dem Ort "POINT (378618.6 5701196)" stellt nur den aktuellsten Unfall dar. -> ist mit _jitter gelöst
 
 #### WIP : Gefilterte CSV-Ausgabe für UHS
 
