@@ -4,32 +4,32 @@
 ::: {layout="[20, 80]" layout-valign="center"}
 ![](https://mirrors.creativecommons.org/presskit/buttons/88x31/png/by.png){fig-alt="Symbol des Lizenzhinweises Creative Commons BY"}
 
-Bausteine Computergestützter Datenanalyse. "Unfalltypenkarten" von
-Lukas Arnold, Simone Arnold, Florian Bagemihl, Matthias Baitsch, Marc
-Fehr, Maik Poetzsch und Sebastian Seipel ist lizensiert unter [CC BY
+Bausteine Computergestützter Datenanalyse. "Anwendungsbaustein Unfalltypenkarte" von
+Lukas Arnold, Simone Arnold, Florian Bagemihl, Matthias Baitsch,  Marc
+Fehr, Franca Hollmann, Maik Poetzsch und Sebastian Seipel ist lizensiert unter [CC BY
 4.0](https://creativecommons.org/licenses/by/4.0/deed.de). Das Werk ist
 abrufbar unter
-<https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarten>.
+<https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarte>.
 Ausgenommen von der Lizenz sind alle Logos Dritter und anders
-gekennzeichnete Inhalte. 2025
+gekennzeichnete Inhalte. 2026
 :::
 
 Zitiervorschlag
 
 Arnold, Lukas, Simone Arnold, Florian Bagemihl, Matthias Baitsch, Marc
-Fehr, Maik Poetzsch, und Sebastian Seipel. 2024. „Bausteine
+Fehr, Franca Hollmann, Maik Poetzsch, und Sebastian Seipel. 2026. „Bausteine
 Computergestützter Datenanalyse. "Anwendungsbaustein
-Unfalltypenkarten“.
-<https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarten>.
+Unfalltypenkarte“.
+<https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarte>.
 
 BibTeX-Vorlage
 
 ```         
-@misc{BCD-a-Unfalltypenkarten-2025,
- title={Bausteine Computergestützter Datenanalyse. Anwendungsbaustein Unfalltypenkarten},
- author={Arnold, Lukas and Arnold, Simone and Bagemihl, Florian and Baitsch, Matthias and Fehr, Marc and Poetzsch, Maik and Seipel, Sebastian},
- year={2025},
- url={https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarten}} 
+@misc{BCD-a-Unfalltypenkarte-2026,
+ title={Bausteine Computergestützter Datenanalyse. Anwendungsbaustein Unfalltypenkarte},
+ author={Arnold, Lukas and Arnold, Simone and Bagemihl, Florian and Baitsch, Matthias and Fehr, Marc and Hollmann, Franca and Poetzsch, Maik and Seipel, Sebastian},
+ year={2026},
+ url={https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarte}} 
 ```
 ::::
 
@@ -37,11 +37,9 @@ BibTeX-Vorlage
 
 ## Voraussetzungen
 
-Teständerung
-
 Zum erfolgreichen Bearbeiten dieses Anwendungsbausteins benötigen Sie
-die Inhalte des Methodenbausteins Grundlagen der Statistik \[Referenz\]
-und des Werkzeugbausteins Datenmanagements \[Referenz\]
+die Inhalte des Methodenbausteins [Grundlagen der Statistik](https://github.com/bausteine-der-datenanalyse/bcd-bausteine-statistik)
+und des Werkzeugbausteins [Datenanalyse in R](https://github.com/bausteine-der-datenanalyse/bcd-bausteine-r). Außerdem sollten die Grundlagen der Unfallanalyse aus dem Merkblatt zur Örtlichen Unfalluntersuchung in Unfallkommissionen (M Uko)  der FGSV bekannt sein.
 
 ## Lernziele
 
@@ -53,12 +51,8 @@ bestimmte Datentypen eignen.
 
 ## Verwendete Datensätze
 
-Die statistischen Ämter des Bundes und der Länder erheben und veröffentlichen mit der Straßenverkehrsunfallstatistik die Verkehrsunfälle mit Personenschaden oder Sachschaden in Deutschland. Im [Unfallatlas](https://unfallatlas.statistikportal.de/) werden Unfälle mit Personenschaden geführt. Für die Sicherheitsanalyse von Verkehrsnetzen können diese Daten verwendet und analysiert werden.
+Die statistischen Ämter des Bundes und der Länder erheben und veröffentlichen mit der Straßenverkehrsunfallstatistik die Verkehrsunfälle mit Personenschaden oder Sachschaden in Deutschland. Im [Unfallatlas](https://unfallatlas.statistikportal.de/) werden Unfälle mit Personenschaden geführt.
 
-Verwenden Sie für das Straßennetz die Daten des Bundesinformationssystems Straße (BISStra) der Bundesanstalt für Straßen- und Verkehrswesen (BASt): <https://www.bast.de/DE/Themen/Digitales/HF_1/Massnahmen/bisstra-datenerfassung.html>
+Daten des Straßennetzes des Bundesinformationssystem Straße, Stichwortsuche: BASt + Bundesfernstraßennetz
 
-[Daten des Straßennetzes des Bundesinformationssystem Straße
-(BISStra)](https://www.bast.de/DE/Themen/Digitales/HF_1/Massnahmen/bisstra-datenerfassung.html)
 
-[Unfalldaten des Unfallatlas des Statistischen
-Bundesamts](https://unfallatlas.statistikportal.de/)
