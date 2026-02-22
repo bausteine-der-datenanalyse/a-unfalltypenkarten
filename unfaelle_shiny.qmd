@@ -1,0 +1,249 @@
+---
+title: "Interaktive Verkehrsunfälle von Bochum"
+format: 
+  html:
+    page-layout: custom
+server: shiny
+---
+
+::: {#Lizenz .border}
+::: {layout="[20, 80]" layout-valign="center"}
+![](https://mirrors.creativecommons.org/presskit/buttons/88x31/png/by.png)
+
+Bausteine Computergestützter Datenanalyse. "Interaktive Karte der Verkehrsunfälle in Bochum" von Lukas Arnold, Simone Arnold, Florian Bagemihl, Matthias Baitsch, Marc Fehr, Franca Hollmann, Maik Poetzsch und Sebastian Seipel ist lizensiert unter [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.de). Das Werk ist abrufbar unter \<*Platzhalter*\>. Ausgenommen von der Lizenz sind alle Logos und anders gekennzeichneten Inhalte. 2026
+:::
+:::
+
+```{r}
+#| context: setup
+#| warning: false
+
+library(leaflet)
+library(shiny)
+library(tidyverse)
+library(sf)
+
+if (!file.exists("daten/geo/BFStr_Netz_v2025q2.gpkg")) {
+  download.file(
+    "https://www.bast.de/SharedDocs/Daten-TB/Daten-BISStra.zip?__blob=publicationFile&v=5",
+    destfile = "daten/Daten-BISStra.zip", mode = "wb"
+  )
+  unzip("daten/Daten-BISStra.zip", exdir = "daten/")
+}
+d_bfstn <- read_sf("daten/geo/BFStr_Netz_v2025q2.gpkg") |>
+  filter(Str_Klasse_kurz == "A" & Sk_Achse == "Bestandsachse") |>
+  mutate(rownumber = row_number()) |>
+  st_zm()
+
+
+unfaelle_einlesen <- function(datei) {
+  daten <- read_delim(
+    datei,
+    delim = ";",
+    locale = locale(decimal_mark = ",", grouping_mark = "."),
+    col_types = cols(
+      ULAND     = col_character(),
+      UKREIS    = col_character(),
+      UGEMEINDE = col_character(),
+      UMONAT    = col_character(),
+      USTUNDE   = col_character(),
+      .default  = col_guess()
+    ),
+    show_col_types = FALSE
+  )
+
+  daten <- daten |>
+    mutate(
+      ULAND = str_pad(ULAND, width = 2, pad = "0"),
+      UKREIS = str_pad(UKREIS, width = 2, pad = "0"),
+      UGEMEINDE = str_pad(UGEMEINDE, width = 3, pad = "0")
+    )
+  
+  if ("USTRZUSTAND" %in% names(daten) && !("STRZUSTAND" %in% names(daten))) {
+    daten <- daten |> rename(STRZUSTAND = USTRZUSTAND)
+  }
+  if ("IstStrassenzustand" %in% names(daten) && !("STRZUSTAND" %in% names(daten))) {
+    daten <- daten |> rename(STRZUSTAND = IstStrassenzustand)
+  }
+  if ("OID_" %in% names(daten) && !("OBJECTID" %in% names(daten))) {
+    daten <- daten |> rename(OBJECTID = OID_)
+  }
+
+  daten |>
+    mutate(
+      UWOCHENTAG = wday(as.numeric(UWOCHENTAG), label = TRUE),
+      UMONAT = month(as.numeric(UMONAT), label = TRUE, abbr = FALSE)
+    )
+}
+
+d_unfalldaten <- list.files(path = "daten", pattern = "\\.(csv|txt)$", full.names = TRUE) |>
+  map(unfaelle_einlesen) |>
+  list_rbind() |>
+  filter(
+    ULAND == "05",
+    UREGBEZ == "9",
+    UKREIS == "11",
+    UGEMEINDE == "000"
+  ) |>
+  st_as_sf(coords = c("LINREFX", "LINREFY"), crs = 25832) |>
+  st_zm()  |>
+  mutate(
+    abschnitt_id_bab = st_nearest_feature(geometry, d_bfstn),
+    distanz_bab = st_distance(geometry, d_bfstn[abschnitt_id_bab, ], by_element = TRUE),
+    name_bab = d_bfstn$Str_Kennung[abschnitt_id_bab]
+  ) |>
+  filter(as.double(distanz_bab) > 20)
+```
+
+```{r}
+#| panel: sidebar
+library(leaflet)
+library(shiny)
+library(tidyverse)
+library(sf)
+
+#Wählbare Unfallkategorien
+  checkboxGroupInput("kategorie", label = h3("Unfallkategorien"), 
+    choices = list("Unfälle mit Getöteten" = 1, "Unfälle mit Schwerverletzten" = 2, "Unfälle mit Leichtverletzten" = 3),
+    selected = c(1:3))
+
+#Wählbare Unfalltypen
+  checkboxGroupInput("typen", label = h3("Unfalltypen"), 
+    choices = list("Fahrunfall" = 1, "Abbiege-Unfall" = 2, "Einbiegen/Kreuzen-Unfall" = 3, "Überschreiten-Unfall" = 4, "Unfall durch ruhenden Verkehr" = 5, "Unfall im Längsverkehr" = 6,"Sonstiger Unfall" = 7),
+    selected = c(1:7))
+
+#Dropdown-Menü für Verkehrsbeteiligung
+  selectInput("beteiligung", label = h3("Verkehrsbeteiligung"), 
+    choices = list("Alle Unfälle" = 1, "Unfälle mit PKW-Beteiligung" = 2, "Unfälle mit Radfahrer-Beteiligung" = 3, "Unfälle mit der Beteiligung von Zu Fuß Gehenden" = 4), 
+    selected = 1)
+  
+#Slider für Jahre
+  sliderInput("jahre", label = h3("Jahre auswählen"), min = 2019, max = 2024, value = c(2019, 2024), sep = "")
+  
+```
+
+```{r}
+#| panel: center
+library(leaflet)
+library(shiny)
+library(tidyverse)
+library(sf)
+
+# Leaflet-Output anzeigen 
+leafletOutput("karte")
+
+# Download-Button anzeigen
+downloadButton("downloadData", "Gefilterte Daten als CSV-Datei herunterladen")
+
+# Tabellen-Output anzeigen
+div(
+  style = "height: 300px; overflow-y: auto;",
+  tableOutput("tabelle")
+)
+```
+
+```{r}
+#| context: server
+library(leaflet)
+library(shiny)
+library(tidyverse)
+library(sf)
+
+
+# Filter reagiert auf User-Input
+d_unfalldaten_gefiltert <- reactive({
+
+testfilter <- d_unfalldaten |> filter(
+  UKATEGORIE %in% as.numeric(input$kategorie),
+  UJAHR >= as.numeric(input$jahre[1]),
+  UJAHR <= as.numeric(input$jahre[2]),
+  UTYP1 %in% as.numeric(input$typen)
+  )
+
+if (input$beteiligung == 2){
+  testfilter <- testfilter |> filter(IstPKW == "1")
+}
+
+if (input$beteiligung == 3){
+  testfilter <- testfilter |> filter(IstRad == "1")
+}
+
+if (input$beteiligung == 4){
+  testfilter <- testfilter |> filter(IstFuss == "1")
+}
+
+testfilter
+})
+
+# Leaflet-Output
+  
+## Farbeinstellungen
+farben_utyp <- colorFactor(
+  palette = c("green", "yellow", "red", "grey", "blue", "orange", "black"),
+  levels  = c(1:7))
+
+## Karte
+
+output$karte <- renderLeaflet({
+
+  d_karte <- d_unfalldaten_gefiltert() |> 
+    st_transform(4326) |> 
+    st_jitter(factor = 0.0002)
+
+  leaflet(d_karte) |>
+    addProviderTiles(providers$Stadia.AlidadeSmooth) |>
+    addCircleMarkers(
+      radius = 3,
+      color = ~farben_utyp(UTYP1),
+      opacity     = 0.7,
+      fillColor   = ~farben_utyp(UTYP1),
+      fillOpacity = 0.7,
+      popup = ~paste0(
+      "Unfall im ",
+      month(as.numeric(UMONAT), label = TRUE, abbr = FALSE), " ", UJAHR,
+      " um ", USTUNDE, " Uhr<br>",
+      "Unfalltyp ", UTYP1, " | Unfallkategorie ", UKATEGORIE
+      )
+    ) |>
+    addLegend(
+      position = "bottomright",
+      colors   = c("green", "yellow", "red", "grey", "blue", "orange", "black"),
+      labels   = c("Fahrunfall", "Abbiege-Unfall", "Einbiegen/Kreuzen-Unfall",
+                    "Überschreiten-Unfall", "Unfall durch ruhenden Verkehr",
+                    "Unfall im Längsverkehr", "Sonstiger Unfall"),
+      title    = "Unfalltyp",
+      opacity  = 0.7
+    )
+})
+
+# Tabellen-Output
+
+output$tabelle <- renderTable({
+
+
+t_unfalldaten_gefiltert <- d_unfalldaten_gefiltert() |>
+  st_drop_geometry() |>
+  group_by(UJAHR, UMONAT) |> 
+  summarise(
+      "PKW-Beteiligung" = sum(as.numeric(IstPKW), na.rm = TRUE),
+      "Rad-Beteiligung" = sum(as.numeric(IstRad), na.rm = TRUE),
+      "Beteiligung von zu Fuß Gehenden" = sum(as.numeric(IstFuss), na.rm = TRUE),
+    .groups = "drop") |>
+  rename(Jahr = "UJAHR" , Monat = "UMONAT")
+
+t_unfalldaten_gefiltert
+} ,digits = 0)
+
+# Download-Funktion
+
+output$downloadData <- downloadHandler(
+  filename = function() {
+    paste0("unfalldaten_gefiltert_", Sys.Date(), ".csv")
+  },
+  content = function(file) {
+    daten <- d_unfalldaten_gefiltert() |> 
+      st_drop_geometry()
+    write.csv(daten, file, row.names = FALSE)
+  }
+)
+```

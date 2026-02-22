@@ -1,0 +1,246 @@
+# Code zur interaktiven Karte der Verkehrsunfälle in Bochum
+
+## Interaktive Karte mit `shiny`
+
+Für die interaktive Karte mit shiny öffnen Sie bitte die Datei `unfaelle_shiny.qmd` und klicken Sie oben links `Run Document`. Es dauert einen Moment, dann öffnet sich ein weiteres RStudio-Fenster mit der Karte, den Filtern und der Tabelle mit Download-Button. 
+
+## Interaktive Karte mit `crosstalk`
+
+Für die Einbindung der interaktiven Karte im html-Dokument bietet es sich an statt `shiny` `crosstalk` zu nutzen.
+
+```{{r}}
+#| include: false
+library(leaflet)
+library(tidyverse)
+library(sf)
+library(lubridate)
+library(crosstalk)
+library(DT)
+library(htmltools)
+library(knitr)
+```
+
+Zunächst blenden wir mit "echo = FALSE" alle Code-Chunks im gerenderten Output aus.
+
+```{{r}}
+#| include: false
+opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+Nun laden wir uns die Daten vom Bundesfernstraßennetz der BASt herunter bzw aus dem "daten"-Ordner, um gleich die Unfälle filtern zu können.
+
+```{{r}}
+if (!file.exists("daten/geo/BFStr_Netz_v2025q2.gpkg")) {
+  download.file(
+    "https://www.bast.de/SharedDocs/Daten-TB/Daten-BISStra.zip?__blob=publicationFile&v=5",
+    destfile = "daten/Daten-BISStra.zip", mode = "wb"
+  )
+  unzip("daten/Daten-BISStra.zip", exdir = "daten/")
+}
+d_bfstn <- read_sf("daten/geo/BFStr_Netz_v2025q2.gpkg") |>
+  filter(Str_Klasse_kurz == "A" & Sk_Achse == "Bestandsachse") |>
+  mutate(rownumber = row_number()) |>
+  st_zm()
+```
+
+Nun lesen wir alle Unfalldaten ein, die in unserem "daten"-Ordner zur Verfügung stehen. Manche sind im .csv-Format, andere als .txt abgespeichert. Wir stellen sicher, dass alle Spaltennamen und -inhalte der verschiedenen Jahre übereinstimmen. Danach berbinden wir die Datensätze, filtern nach dem Gemeindeschlüssel der Stadt Bochum und filtern nach Unfällen, die mindestens 20 Meter von Autobahnen entfernt sind, da uns nur Unfälle auf Stadtstraßen interessieren.
+
+```{{r}}
+unfaelle_einlesen <- function(datei) {
+  daten <- read_delim(
+    datei,
+    delim = ";",
+    locale = locale(decimal_mark = ",", grouping_mark = "."),
+    col_types = cols(
+      ULAND     = col_character(),
+      UKREIS    = col_character(),
+      UGEMEINDE = col_character(),
+      UMONAT    = col_character(),
+      USTUNDE   = col_character(),
+      .default  = col_guess()
+    ),
+    show_col_types = FALSE
+  )
+
+  daten <- daten |>
+    mutate(
+      ULAND = str_pad(ULAND, width = 2, pad = "0"),
+      UKREIS = str_pad(UKREIS, width = 2, pad = "0"),
+      UGEMEINDE = str_pad(UGEMEINDE, width = 3, pad = "0")
+    )
+  
+  if ("USTRZUSTAND" %in% names(daten) && !("STRZUSTAND" %in% names(daten))) {
+    daten <- daten |> rename(STRZUSTAND = USTRZUSTAND)
+  }
+  if ("IstStrassenzustand" %in% names(daten) && !("STRZUSTAND" %in% names(daten))) {
+    daten <- daten |> rename(STRZUSTAND = IstStrassenzustand)
+  }
+  if ("OID_" %in% names(daten) && !("OBJECTID" %in% names(daten))) {
+    daten <- daten |> rename(OBJECTID = OID_)
+  }
+
+  daten |>
+    mutate(
+      UWOCHENTAG = wday(as.numeric(UWOCHENTAG), label = TRUE),
+      UMONAT = month(as.numeric(UMONAT), label = TRUE, abbr = FALSE)
+    )
+}
+
+d_unfalldaten <- list.files(path = "daten", pattern = "\\.(csv|txt)$", full.names = TRUE) |>
+  map(unfaelle_einlesen) |>
+  list_rbind() |>
+  filter(
+    ULAND == "05",
+    UREGBEZ == "9",
+    UKREIS == "11",
+    UGEMEINDE == "000"
+  ) |>
+  st_as_sf(coords = c("LINREFX", "LINREFY"), crs = 25832) |>
+  st_zm()  |>
+  mutate(
+    abschnitt_id_bab = st_nearest_feature(geometry, d_bfstn),
+    distanz_bab = st_distance(geometry, d_bfstn[abschnitt_id_bab, ], by_element = TRUE),
+    name_bab = d_bfstn$Str_Kennung[abschnitt_id_bab]
+  ) |>
+  filter(as.double(distanz_bab) > 20) |>
+  mutate(
+    UKATEGORIE_neu = factor(UKATEGORIE,
+      levels = c("1", "2", "3"),
+      labels = c("Unfall mit Getöteten",
+                "Unfall mit Schwerverletzten",
+                "Unfall mit Leichtverletzten")),
+    UTYP1_neu = factor(as.integer(UTYP1),
+      levels = 1:7,
+      labels = c(
+          "Fahrunfall",
+          "Abbiege-Unfall",
+          "Einbiegen/Kreuzen-Unfall",
+          "Überschreiten-Unfall",
+          "Unfall durch ruhenden Verkehr",
+          "Unfall im Längsverkehr",
+          "Sonstiger Unfall"
+      )),
+    IstPKW_neu = ifelse(IstPKW == "1", "beteiligt", "nicht beteiligt"),
+    IstRad_neu = ifelse(IstRad == "1", "beteiligt", "nicht beteiligt"),
+    IstFuss_neu = ifelse(IstFuss == "1", "beteiligt", "nicht beteiligt")
+  )
+```
+
+Nun treffen wir Vorbereitungen für die grafische Darstellungen. Zunächst fügen wir den Unfalldaten einen räumlichen Versatz von 3 Metern hinzu, damit Unfälle sich auf der Karte nicht überlagern und transformieren in das CRS, mit dem leaflet arbeitet. Außerdem definieren wir die Farben nach dem M Uko [@MUko2012]. 
+
+```{{r}}
+d_karte <- d_unfalldaten |>
+  st_jitter(amount = 3) |>
+  st_transform(4326)
+
+coords <- st_coordinates(d_karte)
+
+d_karte <- d_karte |>
+  mutate(
+    ID = row_number(),
+    lng = coords[, 1],
+    lat = coords[, 2]
+  )
+
+farben_utyp <- colorFactor(
+  palette = c("green", "yellow", "red", "grey", "blue", "orange", "black"),
+  levels  = c(
+    "Fahrunfall",
+    "Abbiege-Unfall",
+    "Einbiegen/Kreuzen-Unfall",
+    "Überschreiten-Unfall",
+    "Unfall durch ruhenden Verkehr",
+    "Unfall im Längsverkehr",
+    "Sonstiger Unfall"
+  )
+)
+```
+
+Für die Filter mit crosstalk brauchen wir die Daten als "shared data", daher transformieren wir die Unfalldaten., einmal für die Karte und einmal für die Tabelle.
+
+```{{r}}
+sd <- SharedData$new(d_karte, key = ~ID, group = "unfaelle")
+
+sd_tabelle <- SharedData$new(
+  d_karte |>
+    st_drop_geometry() |>
+    select(ID, Jahr = UJAHR, Monat = UMONAT, Wochentag = UWOCHENTAG,
+           Kategorie = UKATEGORIE_neu, Unfalltyp = UTYP1_neu,
+           PKW = IstPKW_neu, Rad = IstRad_neu, `Zu Fuß` = IstFuss_neu),
+  key = ~ID,
+  group = "unfaelle"
+)
+```
+
+Nun kommen wir zur grafischen Darstellung. "bscols" ermöglicht uns das Anordnen von HTML Elementen in Bootstrap columns. Damit erzeugen wir zuerst drei Spalten für die Filter der Unfallkategorie, des Unfalltyps und der Unfallbeteiligung. Bei diesen Filtern nutzen wir "filter_checkbox", weil wir die Filter nur ein- oder ausschalten wollen.
+Für den Jahresfilter nutzen wir "filter_slider", mit "sep = "" " und "round = TRUE" sorgen wir für eine Darstellung der Jahreszahlen ohne Dezimaltrennzeichen oder -lücke.
+Hilfen für Darstellungen mit crosstalk finden sich [hier](https://rstudio.github.io/crosstalk/) oder [hier](https://rstudio.github.io/crosstalk/using.html).
+
+Unterhalb der Filter lassen wir uns unsere leaflet-Karte darstellen.
+
+Darunter folgt eine Tabelle mit den gefilterten Unfällen. Wir aktivieren "Scroller" und "Buttons", ermöglichen das horizontale und vertikale Scrollen und ergänzen einen Button zum Download der gefilterten Unfalldaten als .csv-Datei. 
+
+```{{r}}
+bscols(
+  widths = c(4, 4, 4),
+  filter_checkbox("kat",  "Unfallkategorie", sd, ~UKATEGORIE_neu),
+  filter_checkbox("typ",  "Unfalltyp", sd, ~UTYP1_neu),
+  tags$h5("Beteiligung"),
+      filter_checkbox("pkw",  "PKW", sd, ~IstPKW_neu),
+      filter_checkbox("rad",  "Rad", sd, ~IstRad_neu),
+      filter_checkbox("fuss", "Zu Fuß Gehende", sd, ~IstFuss_neu)
+)
+
+bscols(
+  widths = c(1, 10, 1),
+  "",
+  filter_slider("jahr","Jahre", sd, ~UJAHR, sep = "", round = TRUE),
+  ""
+)
+
+leaflet(sd) |>
+  addProviderTiles(providers$Stadia.AlidadeSmooth) |>
+  addCircleMarkers(
+    lng = ~lng,
+    lat = ~lat,
+    radius      = 3,
+    color       = ~farben_utyp(UTYP1_neu),
+    opacity     = 0.7,
+    fillColor   = ~farben_utyp(UTYP1_neu),
+    fillOpacity = 0.7,
+    popup = ~paste0(
+      "Unfall im ",
+      month(as.numeric(UMONAT), label = TRUE, abbr = FALSE), " ", UJAHR,
+      " um ", USTUNDE, " Uhr<br>",
+      UTYP1_neu, " | ", UKATEGORIE_neu
+    )
+  ) |>
+  addLegend(
+    position = "bottomright",
+    colors   = c("green","yellow","red","grey","blue","orange","black"),
+    labels   = levels(d_karte$UTYP1_neu),
+    title    = "Unfalltyp",
+    opacity  = 0.7
+    )
+
+datatable(
+  sd_tabelle,
+  extensions = c("Scroller", "Buttons"),
+  style = "bootstrap",
+  class = "compact stripe hover",
+  width = "100%",
+  rownames = FALSE,
+  colnames = c("ID","Jahr","Monat","Wochentag","Kategorie","Unfalltyp","PKW","Rad","Zu Fuß"),
+  options = list(
+    deferRender = TRUE,
+    scrollY = 300,
+    scrollX = 300,
+    scroller = TRUE,
+    columnDefs = list(list(visible = FALSE, targets = 0)),
+    dom = "frtBiS",
+    buttons = list(
+      list(extend = "csv", text = "Download CSV"))
+  )
+)
+
+```

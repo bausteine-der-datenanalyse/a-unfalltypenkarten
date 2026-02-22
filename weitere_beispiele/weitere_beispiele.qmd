@@ -1,6 +1,0 @@
----
-title: "Weitere Anwendungsbeispiele"
-format: html
----
-
-Hier befinden sich weitere Anwendungsbeispiele zur Verwendung/Analyse von Unfalltypenkarten. Den Großteil des Inhalts hier übernimmt die Erstellung einer interaktiven `leaflet`-Karte mithilfe von `shiny`. Dazu öffnen Sie bitte die Datei `unfaelle_shiny.qmd` aus dem Ordner `weitere_beispiele`.

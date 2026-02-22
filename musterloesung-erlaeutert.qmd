@@ -1,6 +1,5 @@
-# Musterlösung mit Erläuterungen
+# Musterlösung Unfalltypenkarte mit Erläuterungen
 
-todo: prüfen
 ```{r}
 #| include: false
 library(tidyverse)

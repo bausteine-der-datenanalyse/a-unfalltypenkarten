@@ -1,4 +1,4 @@
-# Aufgaben zu Unfalltypenkarten und Unfallhäufungsstellen"
+# Aufgaben zu Unfalltypenkarten und Unfallhäufungsstellen
 
 Versuchen Sie bei den nachfolgenden Aufgaben zu Unfalltypenkarten weitestgehend die Vorgaben der Forschungsgesellschaft für Straßen- und Verkehrswesen (FGSV) aus dem “Merkblatt zur Örtlichen Unfalluntersuchung in Unfallkommissionen” (M Uko) umzusetzen.
 
@@ -21,18 +21,18 @@ für Unfälle in einem beliebigem Jahr. Welche Darstellungen halten Sie für gee
 ::: {#exr-unfallhaeufungstellen}
 ## Unfallhäufungsstellen
 
-Überprüfen Sie nach den Vorgaben des M Uko Unfallhäufungsstellen in einer Dreijahreskarte in einer beliebigen Stadt.
+Stellen Sie nach den Vorgaben des M Uko Unfallhäufungsstellen in einer Dreijahreskarte in einer beliebigen Stadt dar.
 :::
 
 ::: {#exr-shiny-karte}
-Optional: Interaktive `leaflet`-Karte mit `Shiny`
+## optional: Interaktive `leaflet`-Karte mit Filtern
 
-Erstellen Sie eine interaktive `leaflet`-Karte der Unfälle in Bochum in `Shiny`. 
+Erstellen Sie eine interaktive `leaflet`-Karte der Unfälle in Bochum, beispielsweise mit `shiny` oder `crosstalk`. 
 Die Interaktivität soll folgendermaßen gestaltet werden:
 
 - wählbare Unfallkategorien,
 - wählbare Unfalltypen,
-- wählbare Verkehrsbeteiligte und
+- wählbare Unfallbeteiligte und
 - wählbare Jahre
 
 Zusätzlich soll unter der Karte eine Tabelle mit den gewählten Filtern dargestellt werden.

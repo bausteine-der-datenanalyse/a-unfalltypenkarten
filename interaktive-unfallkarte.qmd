@@ -182,7 +182,7 @@ bscols(
 )
 
 leaflet(sd) |>
-  addProviderTiles(providers$Stadia.AlidadeSmooth) |>
+  addTiles() |>
   addCircleMarkers(
     lng = ~lng,
     lat = ~lat,

@@ -32,7 +32,9 @@ book:
     - aufgabenstellung.qmd
     - musterloesung.qmd
     - musterloesung-erlaeutert.qmd
-    - unfallkarte-shiny.qmd
+    - interaktive-unfallkarte-erlaeutert.qmd
+    - interaktive-unfallkarte.qmd
+
 
 format:
   html:
