@@ -30,14 +30,14 @@ opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 Nun laden wir uns die Daten vom Bundesfernstraßennetz der BASt herunter bzw aus dem "daten"-Ordner, um gleich die Unfälle filtern zu können.
 
 ```{{r}}
-if (!file.exists("daten/geo/BFStr_Netz_v2025q2.gpkg")) {
+if (!file.exists("daten/geo/BFStr_Netz_v2025q4.gpkg")) {
   download.file(
     "https://www.bast.de/SharedDocs/Daten-TB/Daten-BISStra.zip?__blob=publicationFile&v=5",
     destfile = "daten/Daten-BISStra.zip", mode = "wb"
   )
-  unzip("daten/Daten-BISStra.zip", exdir = "daten/")
+  unzip("daten/Daten-BISStra.zip", exdir = "daten/geo/")
 }
-d_bfstn <- read_sf("daten/geo/BFStr_Netz_v2025q2.gpkg") |>
+d_bfstn <- read_sf("daten/geo/BFStr_Netz_v2025q4.gpkg") |>
   filter(Str_Klasse_kurz == "A" & Sk_Achse == "Bestandsachse") |>
   mutate(rownumber = row_number()) |>
   st_zm()
