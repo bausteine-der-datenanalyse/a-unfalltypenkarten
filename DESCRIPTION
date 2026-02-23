@@ -15,11 +15,15 @@ Imports:
     giscoR,
     leaflet,
     shiny,
-    snfnetwork,
+    sfnetworks,
     crosstalk,
     DT,
     htmltools,
-    knitr
+    knitr,
+    igraph,
+    units,
+    tidygraph,
+    dbscan
 Suggests: 
 Encoding: UTF-8
 License: CC NC ND 3.0
