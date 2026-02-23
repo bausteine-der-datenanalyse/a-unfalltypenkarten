@@ -14,7 +14,12 @@ Imports:
     osmdata,
     giscoR,
     leaflet,
-    shiny
+    shiny,
+    snfnetwork,
+    crosstalk,
+    DT,
+    htmltools,
+    knitr
 Suggests: 
 Encoding: UTF-8
 License: CC NC ND 3.0
