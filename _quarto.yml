@@ -1,10 +1,11 @@
+lang: de-DE
+
 project:
   type: book
   output-dir: _output/book/
 
 execute:
-  cache: false
-  warning: false
+  cache: true
 
 bibliography: bcd-baustein-unfalltypenkarten.bib
 
@@ -20,27 +21,22 @@ book:
     - Maik Poetzsch
     - Sebastian Seipel
   date: today
-  language: de-DE
   repo-url: "https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarten"
   repo-actions: [source]
   favicon: "bilder/favicon_bcd_new.svg"
   sidebar:
     title: "Anwendungsbaustein Unfalltypenkarten"
     logo: "bilder/logo_bcd_new.svg"
-  chapters:
+  chapters: 
     - index.qmd
     - aufgabenstellung.qmd
     - musterloesung.qmd
     - musterloesung-erlaeutert.qmd
     - interaktive-unfallkarte-erlaeutert.qmd
     - interaktive-unfallkarte.qmd
-
-
+    
 format:
   html:
     theme: cosmo
-    lang: de
     toc: true
     toc-depth: 4
-
-

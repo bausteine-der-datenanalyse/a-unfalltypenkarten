@@ -29,6 +29,8 @@ Für diese Aufgabe nutzen wir eine sogenannte Einjahreskarte (1-JK), das heißt 
 Als erstes wird das Straßennetz der Bundesfernstraßen als Datensatz ins Projekt geladen. Diese Daten bekommen wir von der Bundesanstalt für Straßen- und Verkehrswesen (BASt). Das Bundesfernstraßennetz beinhaltet Daten zu Bundesautobahnen und Bundesstraßen. Aufgrund der Größe des Datensatzes kann dieser nicht auf Github zur Verfügung gestellt werden, daher fügen wir eine Funktion ein, die prüft, ob der Datensatz bereits im “daten”-Ordner liegt und falls nein, er direkt von der Webseite der BASt heruntergeladen, entpackt und an der richtigen Stelle gespeichert wird. Da für uns nur die Autobahnen relevant sind, filtern wir nur diese heraus. Wir wählen als Achse die Bestandsachse, da dies die mittlere Achse der Straße ist und wir keine Unterscheidung der Fahrtrichtung vornehmen müssen. Wir ergänzen eine Spalte (“mutate”) mit der Zeilennummer (brauchen wir gleich für die Unfälle). Auch hier entfernen wir potentielle Daten der z- oder m-Dimension. 
 
 ```{r}
+#| warning: false
+
 file <- list.files("daten/geo", pattern = "^BFStr_Netz.*\\.gpkg$", full.names = TRUE) |> tail(n = 1)
 
 if (length(file) == 0) {
