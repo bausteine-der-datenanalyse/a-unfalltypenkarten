@@ -44,7 +44,7 @@ d_bfstn <- read_sf("daten/geo/BFStr_Netz_v2025q4.gpkg") |>
   st_zm()
 ```
 
-Nun lesen wir alle Unfalldaten ein, die in unserem "daten"-Ordner zur Verfügung stehen. Manche sind im .csv-Format, andere als .txt abgespeichert. Wir stellen sicher, dass alle Spaltennamen und -inhalte der verschiedenen Jahre übereinstimmen. Danach berbinden wir die Datensätze, filtern nach dem Gemeindeschlüssel der Stadt Bochum und filtern nach Unfällen, die mindestens 20 Meter von Autobahnen entfernt sind, da uns nur Unfälle auf Stadtstraßen interessieren.
+Nun lesen wir alle Unfalldaten ein, die in unserem "daten"-Ordner zur Verfügung stehen. Manche sind im .csv-Format, andere als .txt abgespeichert. Wir stellen sicher, dass alle Spaltennamen und -inhalte der verschiedenen Jahre übereinstimmen. Danach verbinden wir die Datensätze, filtern nach dem Gemeindeschlüssel der Stadt Bochum und filtern nach Unfällen, die mindestens 20 Meter von Autobahnen entfernt sind, da uns nur Unfälle auf Stadtstraßen interessieren.
 
 ```{{r}}
 unfaelle_einlesen <- function(datei) {

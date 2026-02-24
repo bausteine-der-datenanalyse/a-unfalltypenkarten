@@ -1,8 +1,6 @@
-# Musterlösung Unfalltypenkarte
+# Musterlösung Unfalltypenkarte mit Erläuterungen
 
-**Verwendete Pakete laden**
-
-```{{r}}
+```{r}
 #| include: false
 library(tidyverse)
 library(sfnetworks)
@@ -19,57 +17,92 @@ library(dbscan)
 library(curl)
 ```
 
+Daten der Bundesinformationssystem Straße (BISStra) für Straßennetz: Stichwort "Bundesfernstraßennetz BASt"
+
+Daten für Unfälle vom Unfallatlas: <https://unfallatlas.statistikportal.de/>
+
 ## Übungsaufgabe 1.1: Unfalltypenkarte
 
-**Daten laden und aufbereiten** 
+Für diese Aufgabe betrachten wir die Unfälle aus einem Jahr. Wir wählen das Kalenderjahr 2024.
 
-```{{r}}
-file <- list.files("daten/geo", pattern = "^BFStr_Netz.*\\.gpkg$", full.names = TRUE) |> tail(n = 1)
+### Datenaufbereitung
 
-if (length(file) == 0) {
+Als erstes wird das Straßennetz der Bundesfernstraßen als Datensatz ins Projekt geladen. Diese Daten bekommen wir von der Bundesanstalt für Straßen- und Verkehrswesen (BASt). Das Bundesfernstraßennetz beinhaltet Daten zu Bundesautobahnen und Bundesstraßen. Aufgrund der Größe des Datensatzes kann dieser nicht auf Github zur Verfügung gestellt werden, daher fügen wir eine Funktion ein, die prüft, ob der Datensatz bereits im "daten"-Ordner liegt und falls nein, er direkt von der Webseite der BASt heruntergeladen, entpackt und an der richtigen Stelle gespeichert wird. Da für uns nur die Autobahnen relevant sind, filtern wir diese heraus. Wir wählen als Achse die Bestandsachse, da dies die mittlere Achse der Straße ist und wir keine Unterscheidung der Fahrtrichtung vornehmen müssen. Wir ergänzen eine Spalte ("mutate") mit der Zeilennummer (wird später zur Aufbereitung der Unfalldaten benötigt). Falls sich in den geometrischen Daten noch Informationen zur Höhe (z-Dimension) oder Messwerte oder Attribute (m-Dimension) enthalten sind, werden diese nun entfernt, damit wir gleich sauber mit ihnen weiterrechnen können.
+
+Als nächstes werden die Daten vom Unfallatlas heruntergeladen und in R geladen. Danach wird der Datensatz mit "st_as_sf" in ein räumliches Punktobjekt umgewandelt. Die Koordinaten stammen aus den Spalten "LINREFX" und "LINREFY". Mit CRS (Coordinate Reference System) wird das Koordinatenreferenzsystem EPSG:25832 definiert. Auch hier entfernen wir potentielle Daten der z- oder m-Dimension.
+
+Den Unfalldaten soll nun aufgrund ihrer Lage in Deutschland der nächstgelegene Autobahnabschnitt und die Entfernung zu diesem hinzugefügt werden. "st_nearest_feature" gibt dabei die Zeilennummer des nächstgelegenen Autobahnabschnitts im Datensatz "d_bfstn" wieder. "st_distance" berechnet die Entfernung vom Unfallpunkt zum nächstgelegenen Autobahnabschnitt, dies kann unter Umständen länger dauern. Außerdem suchen wir mit "d_bfstn$Str_Kennung[abschnitt_id]" aus dem Datensatz "d_bfstn" und der Spalte "Str_Kennung" genau den Eintrag, dessen Zeile durch "abschnitt_id" angegeben wird. Darüber erhalten wir statt einer Nummer eines Autobahnabschnittes den Namen der Autobahn (z.B. A1). Zudem wollen wir nur Unfälle auf Autobahnen berücksichtigen. Dafür filtern wir nach Unfällen, die in einem 20 m Umkreis zur Bestandsachse der Autobahnen verortet sind. Die 20 m wählen wir, um möglichst alle Unfälle auf den Fahrbahnen, auch bei 6- oder 8-streifigen Autobahnen, einzuschließen. Es gibt aber keine Garantie, dass alle Unfälle, die wir nun filtern, tatsächlich auf Autobahnen liegen, zum Beispiel bei Unfällen auf Brücken über Autobahnen.
+Für mehr Übersichtlichkeit vereinfachen wir unseren Datensatz und lassen uns mit "select" nur bestimmte Spalten anzeigen.
+
+Diese beiden Datensätze speichern wir, damit sie, sofern sie vorhanden sind, nur geladen und nicht jedes Mal neu berechnet werden müssen.
+
+```{r}
+#| warning: false
+
+file_rdata <- "daten/unfaelle.RData"
+
+if (!file.exists(file_rdata)) {
+  # Fernstraßennetz
   curl_download(
     "https://www.bast.de/SharedDocs/Daten-TB/Daten-BISStra.zip?__blob=publicationFile&v=5",
     destfile = "daten/Daten-BISStra.zip",
     quiet = FALSE
   )
   unzip("daten/Daten-BISStra.zip", exdir = "daten/geo/")
-  file <- list.files("daten/geo", pattern = "^BFStr_Netz.*\\.gpkg$", full.names = TRUE) |> tail(n = 1)
+  file <- list.files(
+    "daten/geo",
+    pattern = "^BFStr_Netz.*\\.gpkg$",
+    full.names = TRUE
+  ) |>
+    tail(n = 1)
+  d_bfstn <- read_sf(file) |>
+    filter(Str_Klasse_kurz == "A" & Sk_Achse == "Bestandsachse") |>
+    mutate(rownumber = row_number()) |>
+    st_zm()
+
+  # Unfälle auf Autobahnen
+  d_unfaelle_bab_2024 = read_csv2("daten/Unfallorte2024_LinRef.csv") |>
+    st_as_sf(coords = c("LINREFX", "LINREFY"), crs = 25832) |>
+    st_zm() |>
+      mutate(
+        abschnitt_id = st_nearest_feature(geometry, d_bfstn),
+        distanz = st_distance(geometry, d_bfstn[abschnitt_id, ], by_element = TRUE),
+        Str_Kennung = d_bfstn$Str_Kennung[abschnitt_id]
+      ) |>
+    filter(as.double(distanz) <= 20) |>
+    select(UTYP1, UKATEGORIE, Str_Kennung, abschnitt_id)
+
+  # Daten sichern
+  save(
+    d_bfstn,
+    d_unfaelle_bab_2024,
+    file = file_rdata
+  )
+} else {
+  load(file = file_rdata)
 }
-
-d_bfstn <- read_sf(file) |>
-  filter(Str_Klasse_kurz == "A" & Sk_Achse == "Bestandsachse") |>
-  mutate(rownumber = row_number()) |>
-  st_zm()
 ```
 
-```{{r}}
-d_unfaelle_bab_2024 = read_csv2("daten/Unfallorte2024_LinRef.csv") |>
-  st_as_sf(coords = c("LINREFX", "LINREFY"), crs = 25832) |>
-  st_zm() |>
-    mutate(
-      abschnitt_id = st_nearest_feature(geometry, d_bfstn),
-      distanz = st_distance(geometry, d_bfstn[abschnitt_id, ], by_element = TRUE),
-      Str_Kennung = d_bfstn$Str_Kennung[abschnitt_id]
-    ) |>
-  filter(as.double(distanz) <= 20) |>
-  select(UTYP1, UKATEGORIE, Str_Kennung, abschnitt_id)
-```
 
-**Grafische Darstellung mit `ggplot`**
+### Grafische Darstellung mit `ggplot`
 
-```{{r}}
+Für die Darstellung definieren wir uns die Farben der Unfalltypen gemäß des M Uko. [@MUko2012, S.10] Statt weiß nutzen wir allerdings grau für eine bessere Sichtbarkeit auf weißem Grund.
+
+```{r}
 farben_utyp <- c(
 "1" = "green",
 "2" = "yellow",
 "3" = "red",
-"4" = "lightgrey",
+"4" = "grey",
 "5" = "blue",
 "6" = "orange",
 "7" = "black"
 )
 ```
 
-```{{r}}
+Gemäß des M Uko soll die Unfallschwere an der Größe des Punktes abzulesen sein. [@MUko2012, S.10] Dies ist in der Umsetzung schwierig zu differenzieren, daher nutzen wir verschiedene Formen (15 = Quadrat, 16 = Kreis, 17 = Dreieck).
+
+```{r}
 formen_ukat <- c(
   "1" = 15,
   "2" = 16,
@@ -77,9 +110,11 @@ formen_ukat <- c(
 )
 ```
 
-**Grafische Darstellung von Unfällen auf der Beispielautobahn A40 mit ggplot**
+#### Grafische Darstellung von Unfällen auf der Beispielautobahn A40 mit ggplot
 
-```{{r}}
+Bei der grafischen Darstellung wollen wir im Hintergrund den Verlauf der A40 sehen, daher filtern wir uns aus dem Datensatz der Bundesautobahnen “d_bfstn” die Autobahn 40. Aus dem Datensatz der Unfälle auf Bundesautobahnen im Jahr 2024 filtern wir alle Unfälle auf der Beispielautobahn A40. Außerdem wollen wir uns drei Städte entlang der A40 für eine bessere Übersicht darstellen. Dafür suchen wir uns die Koordinaten der Städte aus dem Internet. Diese sind in dem Koordinatenreferenzsystem 4326, daher transformieren (“st_transform”) wir sie in das CRS der anderen Daten (25832). In unserem ggplot stellen wir nun den Verlauf der A40 (“data = d_A40”), die Städte (“data = d_staedte”) und die Unfälle ("data = d_unfaelle_a40_2024") dar und beschriften die Städte mit “geom_sf_text()”. Zudem legen wir mit "scale_colour_manual" den Namen, die Beschriftung und die Farben nach den Unfalltypen fest und mit "scale_shape_manual" den Namen, die Beschriftung und die Form nach Unfallschwere (Unfallkategorie) fest.
+
+```{r}
 d_staedte <- st_as_sf(
   tibble::tribble(
     ~ stadt, ~lat, ~lon,
@@ -116,9 +151,13 @@ ggplot () +
   )
 ```
 
-**Grafische Darstellung aller Unfälle auf Bundesautobahnen mit ggplot**
+Die Unfalltypenkarte der A40 mit ggplot zeigt viele Häufungen von Unfällen, insbesondere zwischen Dortmund und Duisburg. Der Maßstab lässt keine weiteren Aussagen zu.
 
-```{{r}}
+#### Grafische Darstellung aller Unfälle auf Bundesautobahnen mit ggplot
+
+Der Code für die grafische Darstellung aller Unfälle auf Bundesautobahnen ähnelt dem obigen Code. Statt der drei Städte entlang der A40 lassen wir uns nun die vier größten Städte Deutschlands einblenden.
+
+```{r}
 d_staedte2 <- st_as_sf(
   tibble::tribble(
     ~ stadt, ~lat, ~lon,
@@ -156,15 +195,30 @@ ggplot () +
   )
 ```
 
-**Grafische Darstellung mit `leaflet`**
+Die Unfalltypenkarte aller Bundesautobahnen hat recht wenig Mehrwert, da wir aufgrund der Menge der Unfälle und der fehlenden Möglichkeit heranzuzoomen nur eine grobe Übersicht bekommen, aber keine konkreten Aussagen treffen können.
+Daher nutzen wir nun leaflet zur Darstellung.
 
-```{{r}}
+### Grafische Darstellung mit `leaflet`
+
+Als erstes formen wir unsere vorherige Farbpalette der Unfalltypen in ein Format, mit dem Leaflet arbeiten kann, um.
+
+```{r}
 farben_utyp_leaf <- colorFactor(unname(farben_utyp), domain = 1:7)
 ```
 
-**Grafische Darstellung von Unfällen auf der Beispielautobahn A40 mit leaflet**
+#### Grafische Darstellung von Unfällen auf der Beispielautobahn A40 mit leaflet
 
-```{{r}}
+Nun erstellen wir unsere Leaflet-Karte.
+"addTiles" fügt Hintergrundkarte von OpenStreetMap ein, mit "addProviderTiles" können wir die Kartenoptik noch anpassen ([verschiedene Provider hier](https://leaflet-extras.github.io/leaflet-providers/preview/)).
+Leaflet nutzt ein anderes CRS, daher transformieren wir unsere Unfalldaten.
+Mit "addCircleMarkers" werden Kreise als Markierungen hinzugefügt. Der Radius der Kreise soll anhand der Unfallkategorie bestimmt werden, ein Unfall der Kategorie 1 hat dabei beispielsweise einen Radius von 12 Pixel. Das orientiert sich am M Uko, ist aber eine Design-Entscheidung, wie es ansprechend aussieht. Kreise, die mit "addCircleMarkers" erzeugt werden, verändern ihre Größe dynamisch mit dem Zoom. Für Kreise, die immer gleich groß sein sollen, verwendet man "addCircles" und gibt den Radius an. 
+Für die Umrandung und Füllung der Marker nutzen wir das Farbschema des M Uko. Außerdem fügen wir ein Pop-Up hinzu, dass uns die Unfallkategorie und den Unfalltypen anzeigt. Hinzu kommt auch eine Legende unten rechts mit der Erklärung der Unfalltypen mit "addLegend". Für die Legende der Radien brauchen wir "addLegendSize".
+Eine gute Übersicht zu leaflet-Karten und ihren Einstellungsmöglichkeiten findet man [hier](https://r-charts.com/spatial/interactive-maps-leaflet/).
+
+```{r}
+#| when-format: html
+
+
 leaflet(data = d_unfaelle_bab_2024 |> filter(Str_Kennung == "A40") |> st_transform(crs = 4326)) |>   
   addProviderTiles(providers$Stadia.AlidadeSmooth) |>
   addCircleMarkers(
@@ -175,7 +229,7 @@ leaflet(data = d_unfaelle_bab_2024 |> filter(Str_Kennung == "A40") |> st_transfo
   ) |>
   addLegend(
     position = "bottomright",
-    colors = c("green", "yellow",  "red", "lightgrey", "blue", "orange", "black"), labels = c("Fahrunfall","Abbiege-Unfall",
+    colors = c("green", "yellow",  "red", "grey", "blue", "orange", "black"), labels = c("Fahrunfall","Abbiege-Unfall",
     "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall","Unfall durch ruhenden Verkehr", "Unfall im Längsverkehr", 
     "Sonstiger Unfall"),
     title = "Unfalltyp",
@@ -193,9 +247,16 @@ leaflet(data = d_unfaelle_bab_2024 |> filter(Str_Kennung == "A40") |> st_transfo
   )
 ```
 
-**Grafische Darstellung aller Unfälle auf Bundesautobahnen mit leaflet**
+Die interaktive leaflet-Karte ermöglicht uns im Gegensatz zu ggplot, dass wir an die Unfälle heranzoomen können und mit der Möglichkeit der Pop-ups auch dynamische Unfall-Beschriftungen. Allerdings sind diese Vorteile in einem pdf-Dokument nicht gegeben. Die Methode, die wir verwenden, orientiert sich folglich auch immer an unseren Vorgaben. 
 
-```{{r}}
+#### Grafische Darstellung aller Unfälle auf Bundesautobahnen mit leaflet
+
+Die gleichen Schritte wiederholen wir nun für die Unfälle auf Bundesautobahnen.
+
+```{r}
+#| when-format: html
+
+
 leaflet(data = st_transform(d_unfaelle_bab_2024, 4326)) |>   
   addProviderTiles(providers$Stadia.AlidadeSmooth) |>
   addCircleMarkers(
@@ -206,7 +267,7 @@ leaflet(data = st_transform(d_unfaelle_bab_2024, 4326)) |>
   ) |>
   addLegend(
     position = "bottomright",
-    colors = c("green", "yellow",  "red", "lightgrey", "blue", "orange", "black"), labels = c("Fahrunfall","Abbiege-Unfall",
+    colors = c("green", "yellow",  "red", "grey", "blue", "orange", "black"), labels = c("Fahrunfall","Abbiege-Unfall",
     "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall","Unfall durch ruhenden Verkehr", "Unfall im Längsverkehr", 
     "Sonstiger Unfall"),
     title = "Unfalltyp",
@@ -226,9 +287,14 @@ leaflet(data = st_transform(d_unfaelle_bab_2024, 4326)) |>
 
 ## Übungsaufgabe 1.2 : Unfallhäufungsstellen
 
-**Daten einlesen und aufbereiten**
+Für Unfallhäufungsstellen betrachten wir Unfalldaten aus drei (aufeinanderfolgenden) Jahren am Beispiel der Stadt Bochum, vergleichbar zu einer Dreijahreskarte (3-JK).
+Laut M Uko wird dann von einer Unfallhäufungsstelle gesprochen, wenn auf Stadtstraßen in der 3-JK mindestens fünf Unfälle mit Personenschaden ohne besondere Berücksichtigung von Unfalltypen an einem Knotenpunkt auftreten. Die räumliche Ausdehnung ist hierbei 50 Meter um den Achsenschnittpunkt. Auf der freien Strecke ist eine Unfallhäufungsstelle ebenfalls ab fünf Unfällen mit Personenschaden in maximal 50 Metern Ausdehnung ab Knoteneinfluss. [@MUko2012, S. 15]
 
-```{{r}}
+### Daten einlesen und aufbereiten
+
+Als erstes laden wir die Unfalldaten aus den drei aufeinanderfolgenden Jahren und verbinden sie mit "bind_rows". Nun bereiten wir sie ähnlich wie in Aufgabe 1.1 auf. Zusätzlich filtern wir nach dem Gemeindeschlüssel der Stadt Bochum (05 = NRW, 9 = Regierungsbezirk Arnsberg, ...). Außerdem interessieren uns dieses Mal nur Stadtstraßen, dazu ermitteln wir wie bei der obigen Aufgabe die nächstgelegene Autobahn und die Entfernung zu dieser, nur dass wir nun alle Unfälle, die mindestens 20 Meter von einer Autobahn entfernt sind, behalten. Auch hier behalten wir für die Übersichtlichkeit nur ausgewählte Spalten ("select").
+
+```{r}
 d_unfaelle_bochum_3j <- bind_rows(
   read_csv2("daten/Unfallorte2024_LinRef.csv") |> mutate(jahr = 2024),
   read_csv2("daten/Unfallorte2023_LinRef.csv") |> mutate(jahr = 2023),
@@ -253,14 +319,19 @@ d_unfaelle_bochum_3j <- bind_rows(
          ULICHTVERH, IstStrassenzustand)
 ```
 
-```{{r}}
+Damit wir später unsere OpenStreetMap(OSM)-Daten anhand des Stadtgebiets der Stadt Bochum zuschneiden können und da die Stadtgrenze als open data [zur Verfügung steht](https://open.nrw/dataset/bochum-stadtgebiet-stadtgrenze-rvr), laden wir sie in unser Projekt. Dieser Schritt ist optional, sorgt aber dafür, dass unser Endergebnis ansprechender ist, da OSM die Daten aus einem Rechteck abfragt.
+
+```{r}
 d_bochum_stadtgebiet <- st_read("daten/geo/Stadtgrenze.shp") |>
   st_transform(25832)
 ```
+### Knoten-Kanten-Modell
 
-**Knoten-Kanten-Modell**
+Als nächstes möchten wir ein simples Knoten-Kanten-Modell der Stadtstraßen erstellen, bei dem jeder Knotenpunkt (jede Kreuzung, jeder Kreisverkehr) ein Punkt und jede Verbindung zwischen Punkten eine Linie ist. Das ist mit OSM recht schwierig, da die Daten sehr detailliert und kleinteilig sind. Der hier gezeigte Ansatz erhebt daher keinen Anspruch auf Perfektion oder Vollständigkeit, sondern soll ein Mittelmaß zwischen ansprechender Anschaulichkeit und nicht zu hoher Komplexität zeigen.
 
-```{{r}}
+Als erstes laden wir uns die Straßendaten von OSM herunter. Um zu verhindern, dass die durchaus lange Bearbeitungsdauer der ‘add_osm_features’-Funktion jedes Mal beim Rendern des Dokuments durchgeführt wird, lohnt es sich, die rohen RData-Dateien abzuspeichern und mithilfe einer if-Abfrage zu schauen, ob diese Dateien bereits vorhanden sind und dann zu laden.
+
+```{r}
 if (!file.exists("daten/strassen_bo.RData")) {
   d_strassen <- opq(bbox = "Bochum, Germany") |>
     add_osm_feature(
@@ -280,18 +351,28 @@ if (!file.exists("daten/strassen_bo.RData")) {
 }
 ```
 
-```{{r}}
+Als nächstes nutzen wir die Spalte "osm_lines" aus dem gerade erzeugten Datensatz für unsere Kanten. 
+
+```{r}
 d_kanten <- d_strassen$osm_lines |>
   select(name, highway, geometry) |>
   st_transform(25832)
 ```
 
-```{{r}}
+Da für unsere Unfallhäufungsstellen die Fahrtrichtung keine (große) Rolle spielt, bilden wir aus den Kanten ein Netzwerk und glätten mit "convert(to_spatial_smooth) ein erstes Mal.
+
+```{r}
 d_netz <- as_sfnetwork(d_kanten, directed = FALSE) |>
   convert(to_spatial_smooth)
 ```
 
-```{{r}}
+OSM-Daten sind sehr detailliert: Ein einzelner Knotenpunkt (z. B. eine große Kreuzung oder ein Kreisverkehr) besteht in der OSM-Darstellung oftmals aus mehreren Netzwerk-Knoten, nämlich überall dort, wo sich zwei Fahrspuren oder Abbiegestreifen treffen. Für unsere Unfallanalyse wollen wir solche Knoten-Cluster jeweils zu einem einzigen Knoten zusammenfassen.
+Dafür bestimmen wir zunächst Nachbarschaften. Knoten des Netwerks werden als sf-Objekt extrahiert und mit "st_is_within_distance" wird für jeden Knoten ermittelt, welche anderen Knoten innerhalb eines Schwellenwertes von 20 m liegen. Das Ergebnis ist eine Liste, die die räumliche Nähe beschreibt.
+Anschließend wird diese Liste mit "graph_from_adj_list" aus dem Paket "igraph" in einen ungerichteten Graphen überführt. Dessen zusammenhängende Komponenten ("components") liegern eine Gruppen-ID: Alle Knoten, die innerhalb von 20 Metern zueinander liegen, erhalten dieselbe Gruppe. So wird z. B. ein Kreisverkehr mit zehn OSM-Knoten, die jeweils paarweise nahe beieinander liegen, zu einer einzigen Gruppe zusammengefasst.
+Nun wird mit "convert(to_spatial_contracted, group, simplify = TRUE)" jede Knotengruppe zu einem einzelnen Knoten verschmolzen und dem Datensatz zu unserem Netzwerk hinzugefügt. Die Kanten, die vorher zwischen Knoten derselben Gruppe verliefen, entfallen. Kanten zu externen Knoten werden auf den neuen, zusammengefassten Knoten umgehängt. Der Parameter simplify = TRUE entfernt dabei entstehende Mehrfachkanten und Schleifen.
+Die Variablen "knoten_sf", ""nachbarknoten" und "gruppen_id" sind Einmal-Variablen, die mit local() gekapselt werden können, sodass sie danach nicht im Environment verbleiben.
+
+```{r}
 d_netz <- local({
   knoten_sf <- d_netz |> activate("nodes") |> st_as_sf()
   nachbarn <- st_is_within_distance(knoten_sf, dist = set_units(20, "m"))
@@ -303,21 +384,27 @@ d_netz <- local({
 })
 ```
 
-```{{r}}
+Durch die Knotenkontraktion können Mehrfachkanten (mehrere Kanten zwischen demselben Knotenpaar) und Schleifen (Kanten von einem Knoten zu sich selbst) entstehen. Diese werden nun bereinigt: Die Kanten werden zunächst nach Länge sortiert ("arrange(edge_length())"), sodass beim anschließenden Filtern jeweils die kürzeste Verbindung erhalten bleibt. edge_is_multiple() und edge_is_loop() identifizieren die überflüssigen Kanten, die dann entfernt werden. 
+
+```{r}
 d_netz <- d_netz |>
   activate("edges") |>
   arrange(edge_length()) |>
   filter(!edge_is_multiple(), !edge_is_loop())
 ```
 
-```{{r}}
+Für die weiteren Berechnungen extrahieren wir uns aus unserem Netzwerk die Knoten und Kanten.
+
+```{r}
 d_knoten <- d_netz |> activate("nodes") |> st_as_sf() |> st_filter(d_bochum_stadtgebiet)
 d_kanten <- d_netz |> activate("edges") |> st_as_sf() |> st_filter(d_bochum_stadtgebiet)
 ```
 
-**Ermittlung von Unfallhäufungsstellen**
+### Ermittlung von Unfallhäufungsstellen
 
-```{{r}}
+Sowohl für die Unfallhäufungsstellen an Knotenpunkten als auch an freien Strecken brauchen wir je Unfall den nächstgelegenen Knotenpunkt und die Entfernung zu diesem. Daher fügen wir diese mit "st_nearest_feature" und "st_distance" dem Datensatz der Unfalldaten hinzu.
+
+```{r}
 d_unfaelle_bochum_3j <- d_unfaelle_bochum_3j |>
   mutate(
     knoten_id = st_nearest_feature(geometry, d_knoten),
@@ -325,9 +412,11 @@ d_unfaelle_bochum_3j <- d_unfaelle_bochum_3j |>
   ) 
 ```
 
-**Unfallhäufungsstellen an Knotenpunkten**
+#### Unfallhäufungsstellen an Knotenpunkten
 
-```{{r}}
+Um Unfälle im Umkreis von 50 Metern um Knotenpunkte zu ermitteln, erhält jeder Knotenpunkt zuerst eine fortlaufende ID ("row_number"). Dann werden die Unfalldaten mit "inner_join" mit der Knotengeometrie verknüpft und mit "count" alle Unfälle innerhalb von 50 m um einen Knotenpunkt nach ihrer knoten_id gezählt. Danach filtern wir nach Knotenpunkten mit mindestens fünf Unfällen. 
+
+```{r}
 d_knoten_uhs <- d_knoten |>
   mutate(knoten_id = row_number()) |>
   inner_join(
@@ -340,9 +429,15 @@ d_knoten_uhs <- d_knoten |>
   )
 ```
 
-**Unfallhäufungsstellen an freien Strecken**
+#### Unfallhäufungsstellen an freien Strecken
 
-```{{r}}
+Für die Unfälle an freien Strecken betrachten wir die Unfälle, deren Entfernung zu Knotenpunkten größer als 50 Metern ist.
+Die Schritte für die Unfallhäufungsstellen an freien Strecken nutzen Funktionen, bei deren leere Datensätze zu Fehlern oder unerwarteten Ergebnissen führen, daher beginnen wir unseren Code damit, den Datensatz gleich NULL zu setzen, wenn die nachfolgenden Funktionen keine Unfallhäufungsstellen liefern.
+Die Unfallhäufungsstellen an freien Strecken beginnen wie bei der Bereinigung der Knotenpunkte mit einer Nachbarschaftszählung. Für jeden Strecken-Unfall wird ein 50-m-Puffer erzeugt ("st_buffer") und gezählt, wie viele andere Unfälle in diesem Umkreis liegen ("n_nearby"). Nur Unfälle mit mindestens 4 Nachbarn (also 5 Unfälle insgesamt) werden als Kandidaten weiterverarbeitet. Dieser Vorfilter reduziert die Datenmenge erheblich und stellt sicher, dass isolierte Einzelunfälle gar nicht erst ins Clustering eingehen.
+Darauf folgt das Clustering mit dbscan. Die verbleibenden Kandidaten werden mit dem DBSCAN-Algorithmus räumlich geclustert. dbscan eignet sich hier besonders gut, weil es keine vorab festgelegte Clusteranzahl benötigt und beliebig geformte Häufungen erkennen kann – etwa entlang einer kurvigen Straße. Die Parameter entsprechen der Logik des Vorfilters: Mindestens 5 Unfälle ("minPts") innerhalb von 50 m ("eps") bilden eine Unfallhäufungsstelle.
+Zuletzt wird für jedes gefundene Cluster die Anzahl der zugehörigen Unfälle berechnet und der Schwerpunkt ("st_centroid") aller Unfallpunkte als repräsentativer Standort der Unfallhäufungsstelle ermittelt. Punkte, die dbscan als Rauschen klassifiziert ("cluster == 0"), werden verworfen.
+
+```{r}
 d_strecke_uhs <- NULL
 
 d_unfaelle_strecke <- d_unfaelle_bochum_3j |>
@@ -372,9 +467,18 @@ if (nrow(d_unfaelle_strecke) > 0) {
 
 ```
 
-**Grafische Darstellung der Unfallhäufungsstellen auf Stadtstraßen in Bochum**
+### Grafische Darstellung der Unfallhäufungsstellen auf Stadtstraßen in Bochum
 
-```{{r}}
+Wie bei der Aufgabe 1.1 transformieren wir die Datensätze, die wir darstellen wollen, in das von leaflet verwendete CRS.
+Für die Darstellung nutzen wir die Kanten des Straßennetzes als Hintergrund ("addPolylines"). Die Unfallhäufungsstellen an Knotenpunkten stellen wir mit lila farbenen Kreisen mit dem festen Radius von 50 Metern dar, Unfallhäufungsstellen in pink. Durch die festen Radien sind die UHS beim Herauszoomen schlecht zu identifizieren. Daher ergänzen wir noch Marker ("addAwesomeMarkers"). Eine Auswahl an verschiedenen Markern kann beispielsweise [hier](https://ionic.io/ionicons) gefunden werden.
+Den Unfällen fügen wir einen kleinen räumlichen Versatz ("st_jitter") hinzu, damit Unfälle, die an der exakt gleichen Stelle sind oder so im System eingetragen wurden, dargestellt werden und sich nicht überlagern. Außerdem stellen wir die Unfälle mit den gleichen Farben wie in Aufgabe 1.1 dar. Für diese Karte wählen wir für alle Unfallkategorien die gleiche Größe der Kreise. Zudem ergänzen wir beim Pop-Up noch Informationen zum Zeitpunkt des Unfalls.
+Außerdem ergänzen wir noch zwei Legenden und eine Layer-Kontrolle zum Ein- und Ausblenden.
+Auch für die grafische Darstellung sichern wir uns dagegen ab, dass bei der Berechnung von UHS an freien Strecken NULL ergibt, was beim Renderung zu Laufzeitfehlern führen kann.
+
+```{r}
+#| when-format: html
+
+
 karte <- leaflet() |>
   addProviderTiles(providers$Stadia.AlidadeSmooth) |>
   addPolylines(
@@ -436,7 +540,7 @@ karte |>
   ) |>
   addLegend(
     position = "bottomright",
-    colors = c("green", "yellow", "red", "lightgrey", "blue", "orange", "black"),
+    colors = c("green", "yellow", "red", "grey", "blue", "orange", "black"),
     labels = c("Fahrunfall", "Abbiege-Unfall", "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall", "Unfall durch ruhenden Verkehr", "Unfall im Längsverkehr", "Sonstiger Unfall"),
     title = "Unfalltyp",
     opacity = 1
@@ -447,7 +551,4 @@ karte |>
   )
 ```
 
-## Optionale Aufgabe 
-
-Siehe die Kapitel *Code zur interaktiven Karte der Verkehrsunfälle in Bochum* und *Interaktive Karte der Verkehrsunfälle in Bochum* sowie die Datei `unfaelle_shiny.qmd`  
-
+Wir haben nun mit unserem OSM-Modell und den darauf basierenden Berechnungen 60 UHS an Knotenpunkten und 3 UHS an freier Strecke identifiziert und grafisch dargestellt. Wenn wir die Daten mit den [polizeilichen Berichten](https://bochum.polizei.nrw/sites/default/files/2025-03/vu-statistik_2024_pp-bochum_0.pdf) vergleichen, stellen wir fest, dass wir deutlich mehr identifiziert haben als die Polizei. Dies liegt an unterschiedlichen Filtern, z. B. der Unfallschwere, die sich aber je nach Untersuchungsschwerpunkt im R Code anpassen lassen. Wir haben ein Werkzeug entwickelt, das potenzielle Unfallhäufungen identifiziert, eine abschließende Verifizierung jedoch nicht ersetzt.

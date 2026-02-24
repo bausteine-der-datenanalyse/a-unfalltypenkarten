@@ -31,12 +31,17 @@ book:
     - index.qmd
     - aufgabenstellung.qmd
     - musterloesung.qmd
-    - musterloesung-erlaeutert.qmd
-    - interaktive-unfallkarte-erlaeutert.qmd
+    - interaktive-unfallkarte-code.qmd
     - interaktive-unfallkarte.qmd
-    
+  downloads: 
+    - pdf
+
 format:
   html:
     theme: cosmo
+    lang: de
     toc: true
     toc-depth: 4
+    format-links: 
+      - pdf
+  pdf: default
