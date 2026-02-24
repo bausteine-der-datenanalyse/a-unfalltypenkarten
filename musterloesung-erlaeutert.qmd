@@ -29,14 +29,19 @@ Für diese Aufgabe nutzen wir eine sogenannte Einjahreskarte (1-JK), das heißt 
 Als erstes wird das Straßennetz der Bundesfernstraßen als Datensatz ins Projekt geladen. Diese Daten bekommen wir von der Bundesanstalt für Straßen- und Verkehrswesen (BASt). Das Bundesfernstraßennetz beinhaltet Daten zu Bundesautobahnen und Bundesstraßen. Aufgrund der Größe des Datensatzes kann dieser nicht auf Github zur Verfügung gestellt werden, daher fügen wir eine Funktion ein, die prüft, ob der Datensatz bereits im “daten”-Ordner liegt und falls nein, er direkt von der Webseite der BASt heruntergeladen, entpackt und an der richtigen Stelle gespeichert wird. Da für uns nur die Autobahnen relevant sind, filtern wir nur diese heraus. Wir wählen als Achse die Bestandsachse, da dies die mittlere Achse der Straße ist und wir keine Unterscheidung der Fahrtrichtung vornehmen müssen. Wir ergänzen eine Spalte (“mutate”) mit der Zeilennummer (brauchen wir gleich für die Unfälle). Auch hier entfernen wir potentielle Daten der z- oder m-Dimension. 
 
 ```{r}
-if (!file.exists("daten/geo/BFStr_Netz_v2025q4.gpkg")) {
-  download.file(
+file <- list.files("daten/geo", pattern = "^BFStr_Netz.*\\.gpkg$", full.names = TRUE) |> tail(n = 1)
+
+if (length(file) == 0) {
+  curl_download(
     "https://www.bast.de/SharedDocs/Daten-TB/Daten-BISStra.zip?__blob=publicationFile&v=5",
-    destfile = "daten/Daten-BISStra.zip", mode = "wb"
+    destfile = "daten/Daten-BISStra.zip",
+    quiet = FALSE
   )
   unzip("daten/Daten-BISStra.zip", exdir = "daten/geo/")
+  file <- list.files("daten/geo", pattern = "^BFStr_Netz.*\\.gpkg$", full.names = TRUE) |> tail(n = 1)
 }
-d_bfstn <- read_sf("daten/geo/BFStr_Netz_v2025q4.gpkg") |>
+
+d_bfstn <- read_sf(file) |>
   filter(Str_Klasse_kurz == "A" & Sk_Achse == "Bestandsachse") |>
   mutate(rownumber = row_number()) |>
   st_zm()
@@ -59,14 +64,14 @@ d_unfaelle_bab_2024 = read_csv2("daten/Unfallorte2024_LinRef.csv") |>
 
 ### Grafische Darstellung mit `ggplot`
 
-Für die Darstellung definieren wir uns die Farben der Unfalltypen gemäß des M Uko. [@MUko2012, S.10] Statt weiß nutzen wir allerdings hellgrau für eine bessere Sichtbarkeit auf weißem Grund.
+Für die Darstellung definieren wir uns die Farben der Unfalltypen gemäß des M Uko. [@MUko2012, S.10] Statt weiß nutzen wir allerdings grau für eine bessere Sichtbarkeit auf weißem Grund.
 
 ```{r}
 farben_utyp <- c(
 "1" = "green",
 "2" = "yellow",
 "3" = "red",
-"4" = "lightgrey",
+"4" = "grey",
 "5" = "blue",
 "6" = "orange",
 "7" = "black"
@@ -199,7 +204,7 @@ leaflet(data = d_unfaelle_bab_2024 |> filter(Str_Kennung == "A40") |> st_transfo
   ) |>
   addLegend(
     position = "bottomright",
-    colors = c("green", "yellow",  "red", "lightgrey", "blue", "orange", "black"), labels = c("Fahrunfall","Abbiege-Unfall",
+    colors = c("green", "yellow",  "red", "grey", "blue", "orange", "black"), labels = c("Fahrunfall","Abbiege-Unfall",
     "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall","Unfall durch ruhenden Verkehr", "Unfall im Längsverkehr", 
     "Sonstiger Unfall"),
     title = "Unfalltyp",
@@ -234,7 +239,7 @@ leaflet(data = st_transform(d_unfaelle_bab_2024, 4326)) |>
   ) |>
   addLegend(
     position = "bottomright",
-    colors = c("green", "yellow",  "red", "lightgrey", "blue", "orange", "black"), labels = c("Fahrunfall","Abbiege-Unfall",
+    colors = c("green", "yellow",  "red", "grey", "blue", "orange", "black"), labels = c("Fahrunfall","Abbiege-Unfall",
     "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall","Unfall durch ruhenden Verkehr", "Unfall im Längsverkehr", 
     "Sonstiger Unfall"),
     title = "Unfalltyp",
@@ -504,7 +509,7 @@ karte |>
   ) |>
   addLegend(
     position = "bottomright",
-    colors = c("green", "yellow", "red", "lightgrey", "blue", "orange", "black"),
+    colors = c("green", "yellow", "red", "grey", "blue", "orange", "black"),
     labels = c("Fahrunfall", "Abbiege-Unfall", "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall", "Unfall durch ruhenden Verkehr", "Unfall im Längsverkehr", "Sonstiger Unfall"),
     title = "Unfalltyp",
     opacity = 1

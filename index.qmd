@@ -33,8 +33,6 @@ BibTeX-Vorlage
 ```
 ::::
 
-# Einleitung
-
 ## Voraussetzungen
 
 Zum erfolgreichen Bearbeiten dieses Anwendungsbausteins benötigen Sie
