@@ -216,11 +216,19 @@ Für die Umrandung und Füllung der Marker nutzen wir das Farbschema des M Uko. 
 Eine gute Übersicht zu leaflet-Karten und ihren Einstellungsmöglichkeiten findet man [hier](https://r-charts.com/spatial/interactive-maps-leaflet/).
 
 ```{r}
+#| eval: !expr knitr::is_latex_output()
+#| when-format: pdf
+
+cat("*Interaktive Karte nur in der HTML-Version verfügbar.*")
+```
+
+```{r}
+#| eval: !expr knitr::is_html_output()
 #| when-format: html
 
 
 leaflet(data = d_unfaelle_bab_2024 |> filter(Str_Kennung == "A40") |> st_transform(crs = 4326)) |>   
-  addProviderTiles(providers$Stadia.AlidadeSmooth) |>
+  addTiles() |>
   addCircleMarkers(
     radius = ~c(12, 8, 5)[UKATEGORIE],
     color = ~farben_utyp_leaf(UTYP1), opacity = 1,
@@ -254,11 +262,19 @@ Die interaktive leaflet-Karte ermöglicht uns im Gegensatz zu ggplot, dass wir a
 Die gleichen Schritte wiederholen wir nun für die Unfälle auf Bundesautobahnen.
 
 ```{r}
+#| eval: !expr knitr::is_latex_output()
+#| when-format: pdf
+
+cat("*Interaktive Karte nur in der HTML-Version verfügbar.*")
+```
+
+```{r}
+#| eval: !expr knitr::is_html_output()
 #| when-format: html
 
 
 leaflet(data = st_transform(d_unfaelle_bab_2024, 4326)) |>   
-  addProviderTiles(providers$Stadia.AlidadeSmooth) |>
+  addTiles() |>
   addCircleMarkers(
     radius = ~c(12, 8, 5)[UKATEGORIE],
     color = ~farben_utyp_leaf(UTYP1), opacity = 1,
@@ -295,6 +311,9 @@ Laut M Uko wird dann von einer Unfallhäufungsstelle gesprochen, wenn auf Stadts
 Als erstes laden wir die Unfalldaten aus den drei aufeinanderfolgenden Jahren und verbinden sie mit "bind_rows". Nun bereiten wir sie ähnlich wie in Aufgabe 1.1 auf. Zusätzlich filtern wir nach dem Gemeindeschlüssel der Stadt Bochum (05 = NRW, 9 = Regierungsbezirk Arnsberg, ...). Außerdem interessieren uns dieses Mal nur Stadtstraßen, dazu ermitteln wir wie bei der obigen Aufgabe die nächstgelegene Autobahn und die Entfernung zu dieser, nur dass wir nun alle Unfälle, die mindestens 20 Meter von einer Autobahn entfernt sind, behalten. Auch hier behalten wir für die Übersichtlichkeit nur ausgewählte Spalten ("select").
 
 ```{r}
+#| warning: false
+
+
 d_unfaelle_bochum_3j <- bind_rows(
   read_csv2("daten/Unfallorte2024_LinRef.csv") |> mutate(jahr = 2024),
   read_csv2("daten/Unfallorte2023_LinRef.csv") |> mutate(jahr = 2023),
@@ -322,7 +341,7 @@ d_unfaelle_bochum_3j <- bind_rows(
 Damit wir später unsere OpenStreetMap(OSM)-Daten anhand des Stadtgebiets der Stadt Bochum zuschneiden können und da die Stadtgrenze als open data [zur Verfügung steht](https://open.nrw/dataset/bochum-stadtgebiet-stadtgrenze-rvr), laden wir sie in unser Projekt. Dieser Schritt ist optional, sorgt aber dafür, dass unser Endergebnis ansprechender ist, da OSM die Daten aus einem Rechteck abfragt.
 
 ```{r}
-d_bochum_stadtgebiet <- st_read("daten/geo/Stadtgrenze.shp") |>
+d_bochum_stadtgebiet <- st_read("daten/geo/Stadtgrenze.shp", quiet = TRUE) |>
   st_transform(25832)
 ```
 ### Knoten-Kanten-Modell
@@ -476,11 +495,18 @@ Außerdem ergänzen wir noch zwei Legenden und eine Layer-Kontrolle zum Ein- und
 Auch für die grafische Darstellung sichern wir uns dagegen ab, dass bei der Berechnung von UHS an freien Strecken NULL ergibt, was beim Renderung zu Laufzeitfehlern führen kann.
 
 ```{r}
+#| eval: !expr knitr::is_latex_output()
+#| when-format: pdf
+
+cat("*Interaktive Karte nur in der HTML-Version verfügbar.*")
+```
+
+```{r}
+#| eval: !expr knitr::is_html_output()
 #| when-format: html
 
-
 karte <- leaflet() |>
-  addProviderTiles(providers$Stadia.AlidadeSmooth) |>
+  addTiles() |>
   addPolylines(
     data = st_transform(d_kanten, 4326),
     color = "black", weight = 1, opacity = 1,

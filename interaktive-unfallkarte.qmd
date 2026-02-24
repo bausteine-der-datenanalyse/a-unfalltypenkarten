@@ -1,3 +1,9 @@
+---
+execute:
+  echo: false
+  warning: false
+---
+
 # Interaktive Karte der Verkehrsunfälle in Bochum
 
 ::: {#Lizenz .border}
@@ -7,6 +13,7 @@
 Bausteine Computergestützter Datenanalyse. "Interaktive Karte der Verkehrsunfälle in Bochum" von Lukas Arnold, Simone Arnold, Florian Bagemihl, Matthias Baitsch, Marc Fehr, Franca Hollmann, Maik Poetzsch und Sebastian Seipel ist lizenziert unter [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.de). Das Werk ist abrufbar unter \<*Platzhalter*\>. Ausgenommen von der Lizenz sind alle Logos und anders gekennzeichneten Inhalte. 2026
 :::
 :::
+
 
 ```{r}
 #| include: false
@@ -20,12 +27,6 @@ library(htmltools)
 library(knitr)
 library(curl)
 ```
-
-```{r}
-#| include: false
-opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
-```
-
 
 ```{r}
 if (!file.exists("daten/geo/BFStr_Netz_v2025q4.gpkg")) {
@@ -165,6 +166,16 @@ sd_tabelle <- SharedData$new(
 ```
 
 ```{r}
+#| eval: !expr knitr::is_latex_output()
+#| when-format: pdf
+
+cat("*Interaktive Karte nur in der HTML-Version verfügbar.*")
+```
+
+```{r}
+#| eval: !expr knitr::is_html_output()
+#| when-format: html
+
 bscols(
   widths = c(4, 4, 4),
   filter_checkbox("kat",  "Unfallkategorie", sd, ~UKATEGORIE_neu),
