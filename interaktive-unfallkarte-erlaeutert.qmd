@@ -18,6 +18,7 @@ library(crosstalk)
 library(DT)
 library(htmltools)
 library(knitr)
+library(curl)
 ```
 
 Zunächst blenden wir mit "echo = FALSE" alle Code-Chunks im gerenderten Output aus.

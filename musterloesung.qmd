@@ -16,6 +16,7 @@ library(igraph)
 library(units)
 library(tidygraph)
 library(dbscan)
+library(curl)
 ```
 
 ## Übungsaufgabe 1.1: Unfalltypenkarte

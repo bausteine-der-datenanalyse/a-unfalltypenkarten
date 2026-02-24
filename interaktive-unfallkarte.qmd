@@ -18,6 +18,7 @@ library(crosstalk)
 library(DT)
 library(htmltools)
 library(knitr)
+library(curl)
 ```
 
 ```{r}

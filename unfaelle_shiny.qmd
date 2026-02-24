@@ -22,6 +22,7 @@ library(leaflet)
 library(shiny)
 library(tidyverse)
 library(sf)
+library(curl)
 
 file <- list.files("daten/geo", pattern = "^BFStr_Netz.*\\.gpkg$", full.names = TRUE) |> tail(n = 1)
 

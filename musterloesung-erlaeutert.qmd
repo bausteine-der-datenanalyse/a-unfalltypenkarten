@@ -14,6 +14,7 @@ library(igraph)
 library(units)
 library(tidygraph)
 library(dbscan)
+library(curl)
 ```
 
 Daten der Bundesinformationssystem Straße (BISStra) für Straßennetz: Stichwort "Bundesfernstraßennetz BASt"
