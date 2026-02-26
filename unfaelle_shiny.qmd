@@ -10,7 +10,7 @@ server: shiny
 ::: {layout="[20, 80]" layout-valign="center"}
 ![](https://mirrors.creativecommons.org/presskit/buttons/88x31/png/by.png)
 
-Bausteine Computergestützter Datenanalyse. "Interaktive Karte der Verkehrsunfälle in Bochum" von Lukas Arnold, Simone Arnold, Florian Bagemihl, Matthias Baitsch, Marc Fehr, Franca Hollmann, Maik Poetzsch und Sebastian Seipel ist lizensiert unter [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.de). Das Werk ist abrufbar unter \<*Platzhalter*\>. Ausgenommen von der Lizenz sind alle Logos und anders gekennzeichneten Inhalte. 2026
+Bausteine Computergestützter Datenanalyse. "Interaktive Karte der Verkehrsunfälle in Bochum" von Lukas Arnold, Simone Arnold, Florian Bagemihl, Matthias Baitsch, Marc Fehr, Franca Hollmann, Maik Poetzsch und Sebastian Seipel ist lizensiert unter [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.de). Ausgenommen von der Lizenz sind alle Logos und anders gekennzeichneten Inhalte. 2026
 :::
 :::
 
