@@ -24,81 +24,114 @@ library(tidyverse)
 library(sf)
 library(curl)
 
-file <- list.files("daten/geo", pattern = "^BFStr_Netz.*\\.gpkg$", full.names = TRUE) |> tail(n = 1)
-
-if (length(file) == 0) {
+if (!file.exists("daten/unfaelle_interaktiv.RData")) {
+  # Fernstraßennetz
   curl_download(
     "https://www.bast.de/SharedDocs/Daten-TB/Daten-BISStra.zip?__blob=publicationFile&v=5",
     destfile = "daten/Daten-BISStra.zip",
     quiet = FALSE
   )
   unzip("daten/Daten-BISStra.zip", exdir = "daten/geo/")
-  file <- list.files("daten/geo", pattern = "^BFStr_Netz.*\\.gpkg$", full.names = TRUE) |> tail(n = 1)
-}
+  file <- list.files(
+    "daten/geo",
+    pattern = "^BFStr_Netz.*\\.gpkg$",
+    full.names = TRUE
+  ) |>
+    tail(n = 1)
+  d_bfstn <- read_sf(file) |>
+    filter(Str_Klasse_kurz == "A" & Sk_Achse == "Bestandsachse") |>
+    mutate(rownumber = row_number()) |>
+    st_zm()
 
-d_bfstn <- read_sf(file) |>
-  filter(Str_Klasse_kurz == "A" & Sk_Achse == "Bestandsachse") |>
-  mutate(rownumber = row_number()) |>
-  st_zm()
-
-
-unfaelle_einlesen <- function(datei) {
-  daten <- read_delim(
-    datei,
-    delim = ";",
-    locale = locale(decimal_mark = ",", grouping_mark = "."),
-    col_types = cols(
-      ULAND     = col_character(),
-      UKREIS    = col_character(),
-      UGEMEINDE = col_character(),
-      UMONAT    = col_character(),
-      USTUNDE   = col_character(),
-      .default  = col_guess()
-    ),
-    show_col_types = FALSE
-  )
-
-  daten <- daten |>
-    mutate(
-      ULAND = str_pad(ULAND, width = 2, pad = "0"),
-      UKREIS = str_pad(UKREIS, width = 2, pad = "0"),
-      UGEMEINDE = str_pad(UGEMEINDE, width = 3, pad = "0")
+  # Unfalldaten
+  unfaelle_einlesen <- function(datei) {
+    daten <- read_delim(
+      datei,
+      delim = ";",
+      locale = locale(decimal_mark = ",", grouping_mark = "."),
+      col_types = cols(
+        ULAND     = col_character(),
+        UKREIS    = col_character(),
+        UGEMEINDE = col_character(),
+        UMONAT    = col_character(),
+        USTUNDE   = col_character(),
+        .default  = col_guess()
+      ),
+      show_col_types = FALSE
     )
   
-  if ("USTRZUSTAND" %in% names(daten) && !("STRZUSTAND" %in% names(daten))) {
-    daten <- daten |> rename(STRZUSTAND = USTRZUSTAND)
+    daten <- daten |>
+      mutate(
+        ULAND = str_pad(ULAND, width = 2, pad = "0"),
+        UKREIS = str_pad(UKREIS, width = 2, pad = "0"),
+        UGEMEINDE = str_pad(UGEMEINDE, width = 3, pad = "0")
+      )
+    
+    if ("USTRZUSTAND" %in% names(daten) && !("STRZUSTAND" %in% names(daten))) {
+      daten <- daten |> rename(STRZUSTAND = USTRZUSTAND)
+    }
+    if ("IstStrassenzustand" %in% names(daten) && !("STRZUSTAND" %in% names(daten))) {
+      daten <- daten |> rename(STRZUSTAND = IstStrassenzustand)
+    }
+    if ("OID_" %in% names(daten) && !("OBJECTID" %in% names(daten))) {
+      daten <- daten |> rename(OBJECTID = OID_)
+    }
+  
+    daten |>
+      mutate(
+        UWOCHENTAG = wday(as.numeric(UWOCHENTAG), label = TRUE),
+        UMONAT = month(as.numeric(UMONAT), label = TRUE, abbr = FALSE)
+      )
   }
-  if ("IstStrassenzustand" %in% names(daten) && !("STRZUSTAND" %in% names(daten))) {
-    daten <- daten |> rename(STRZUSTAND = IstStrassenzustand)
-  }
-  if ("OID_" %in% names(daten) && !("OBJECTID" %in% names(daten))) {
-    daten <- daten |> rename(OBJECTID = OID_)
-  }
-
-  daten |>
+  
+  d_unfalldaten <- list.files(path = "daten", pattern = "\\.(csv|txt)$", full.names = TRUE) |>
+    map(unfaelle_einlesen) |>
+    list_rbind() |>
+    filter(
+      ULAND == "05",
+      UREGBEZ == "9",
+      UKREIS == "11",
+      UGEMEINDE == "000"
+    ) |>
+    st_as_sf(coords = c("LINREFX", "LINREFY"), crs = 25832) |>
+    st_zm()  |>
     mutate(
-      UWOCHENTAG = wday(as.numeric(UWOCHENTAG), label = TRUE),
-      UMONAT = month(as.numeric(UMONAT), label = TRUE, abbr = FALSE)
+      abschnitt_id_bab = st_nearest_feature(geometry, d_bfstn),
+      distanz_bab = st_distance(geometry, d_bfstn[abschnitt_id_bab, ], by_element = TRUE),
+      name_bab = d_bfstn$Str_Kennung[abschnitt_id_bab]
+    ) |>
+    filter(as.double(distanz_bab) > 20) |>
+    mutate(
+      UKATEGORIE_neu = factor(UKATEGORIE,
+        levels = c("1", "2", "3"),
+        labels = c("Unfall mit Getöteten",
+                  "Unfall mit Schwerverletzten",
+                  "Unfall mit Leichtverletzten")),
+      UTYP1_neu = factor(as.integer(UTYP1),
+        levels = 1:7,
+        labels = c(
+            "Fahrunfall",
+            "Abbiege-Unfall",
+            "Einbiegen/Kreuzen-Unfall",
+            "Überschreiten-Unfall",
+            "Unfall durch ruhenden Verkehr",
+            "Unfall im Längsverkehr",
+            "Sonstiger Unfall"
+        )),
+      IstPKW_neu = ifelse(IstPKW == "1", "beteiligt", "nicht beteiligt"),
+      IstRad_neu = ifelse(IstRad == "1", "beteiligt", "nicht beteiligt"),
+      IstFuss_neu = ifelse(IstFuss == "1", "beteiligt", "nicht beteiligt")
     )
-}
 
-d_unfalldaten <- list.files(path = "daten", pattern = "\\.(csv|txt)$", full.names = TRUE) |>
-  map(unfaelle_einlesen) |>
-  list_rbind() |>
-  filter(
-    ULAND == "05",
-    UREGBEZ == "9",
-    UKREIS == "11",
-    UGEMEINDE == "000"
-  ) |>
-  st_as_sf(coords = c("LINREFX", "LINREFY"), crs = 25832) |>
-  st_zm()  |>
-  mutate(
-    abschnitt_id_bab = st_nearest_feature(geometry, d_bfstn),
-    distanz_bab = st_distance(geometry, d_bfstn[abschnitt_id_bab, ], by_element = TRUE),
-    name_bab = d_bfstn$Str_Kennung[abschnitt_id_bab]
-  ) |>
-  filter(as.double(distanz_bab) > 20)
+  # Daten sichern
+  save(
+    d_bfstn,
+    d_unfalldaten,
+    file = "daten/unfaelle_interaktiv.RData"
+  )
+} else {
+  load(file = "daten/unfaelle_interaktiv.RData")
+}
 ```
 
 ```{r}

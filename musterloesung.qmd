@@ -39,9 +39,7 @@ Diese beiden Datensätze speichern wir, damit sie, sofern sie vorhanden sind, nu
 ```{r}
 #| warning: false
 
-file_rdata <- "daten/unfaelle.RData"
-
-if (!file.exists(file_rdata)) {
+if (!file.exists("daten/unfaelle.RData")) {
   # Fernstraßennetz
   curl_download(
     "https://www.bast.de/SharedDocs/Daten-TB/Daten-BISStra.zip?__blob=publicationFile&v=5",
@@ -66,7 +64,8 @@ if (!file.exists(file_rdata)) {
     st_zm() |>
       mutate(
         abschnitt_id = st_nearest_feature(geometry, d_bfstn),
-        distanz = st_distance(geometry, d_bfstn[abschnitt_id, ], by_element = TRUE),
+        distanz = st_distance(geometry, d_bfstn[abschnitt_id, ], 
+                              by_element = TRUE),
         Str_Kennung = d_bfstn$Str_Kennung[abschnitt_id]
       ) |>
     filter(as.double(distanz) <= 20) |>
@@ -76,10 +75,10 @@ if (!file.exists(file_rdata)) {
   save(
     d_bfstn,
     d_unfaelle_bab_2024,
-    file = file_rdata
+    file = "daten/unfaelle.RData"
   )
 } else {
-  load(file = file_rdata)
+  load(file = "daten/unfaelle.RData")
 }
 ```
 
@@ -128,9 +127,11 @@ d_staedte <- st_as_sf(
   st_transform(25832)
   
 ggplot () +
-  geom_sf(data = filter(d_bfstn, Str_Kennung == "A40"), colour = "grey", size = 0.4) +
+  geom_sf(data = filter(d_bfstn, Str_Kennung == "A40"), 
+          colour = "grey", size = 0.4) +
   geom_sf(data = d_staedte, colour = "red", shape = 22) +
-  geom_sf_text(data = d_staedte, aes(label = stadt), nudge_y = 5000, size = 3) +
+  geom_sf_text(data = d_staedte, aes(label = stadt), 
+               nudge_y = 5000, size = 3) +
   geom_sf(
     data = filter(d_unfaelle_bab_2024, Str_Kennung == "A40"),
     mapping = aes(
@@ -138,8 +139,16 @@ ggplot () +
       colour = as.character(UTYP1), 
       shape = as.character(UKATEGORIE)),
     size = 1.5) +
-  scale_colour_manual(name = "Unfalltyp", values = farben_utyp, labels = c("Fahrunfall","Abbiege-Unfall", "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall","Unfall durch ruhenden Verkehr", "Unfall im Längsverkehr", "Sonstiger Unfall")) +
-  scale_shape_manual(name = "Unfallschwere", values = formen_ukat, labels = c("Unfall mit Getöteten", "Unfall mit Schwerverletzten", "Unfall mit Leichtverletzten")) +
+  scale_colour_manual(name = "Unfalltyp", values = farben_utyp, 
+                      labels = c(
+                        "Fahrunfall","Abbiege-Unfall", 
+                        "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall",
+                        "Unfall durch ruhenden Verkehr", 
+                        "Unfall im Längsverkehr", "Sonstiger Unfall")) +
+  scale_shape_manual(name = "Unfallschwere", values = formen_ukat, 
+                     labels = c(
+                       "Unfall mit Getöteten", "Unfall mit Schwerverletzten", 
+                       "Unfall mit Leichtverletzten")) +
   labs(title = "Unfalltypenkarte der A40 im Jahr 2024") +
   theme_minimal() +
   theme(
@@ -174,7 +183,8 @@ d_staedte2 <- st_as_sf(
 ggplot () +
   geom_sf(data = d_bfstn, colour = "grey", size = 0.4) +
   geom_sf(data = d_staedte2, colour = "red", shape = 22) +
-  geom_sf_text(data = d_staedte2, aes(label = stadt), nudge_y = 5000, size = 3) +
+  geom_sf_text(data = d_staedte2, aes(label = stadt), 
+               nudge_y = 5000, size = 3) +
   geom_sf(
     data = d_unfaelle_bab_2024,
     mapping = aes(
@@ -182,8 +192,16 @@ ggplot () +
       colour = as.character(UTYP1), 
       shape = as.character(UKATEGORIE)),
     size = 0.5) +
-  scale_colour_manual(name = "Unfalltyp", values = farben_utyp, labels = c("Fahrunfall","Abbiege-Unfall", "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall","Unfall durch ruhenden Verkehr", "Unfall im Längsverkehr", "Sonstiger Unfall")) +
-  scale_shape_manual(name = "Unfallschwere", values = formen_ukat, labels = c("Unfall mit Getöteten", "Unfall mit Schwerverletzten", "Unfall mit Leichtverletzten")) +
+  scale_colour_manual(name = "Unfalltyp", values = farben_utyp, 
+                      labels = c(
+                        "Fahrunfall","Abbiege-Unfall", 
+                        "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall",
+                        "Unfall durch ruhenden Verkehr", 
+                        "Unfall im Längsverkehr", "Sonstiger Unfall")) +
+  scale_shape_manual(name = "Unfallschwere", values = formen_ukat, 
+                     labels = c(
+                       "Unfall mit Getöteten", "Unfall mit Schwerverletzten", 
+                       "Unfall mit Leichtverletzten")) +
   labs(title = "Unfalltypenkarte aller deutschen Autobahnen im Jahr 2024") +
   theme_minimal() +
   theme(
@@ -218,6 +236,7 @@ Eine gute Übersicht zu leaflet-Karten und ihren Einstellungsmöglichkeiten find
 ```{r}
 #| eval: !expr knitr::is_latex_output()
 #| when-format: pdf
+#| include: false
 
 cat("*Interaktive Karte nur in der HTML-Version verfügbar.*")
 ```
@@ -227,7 +246,8 @@ cat("*Interaktive Karte nur in der HTML-Version verfügbar.*")
 #| when-format: html
 
 
-leaflet(data = d_unfaelle_bab_2024 |> filter(Str_Kennung == "A40") |> st_transform(crs = 4326)) |>   
+leaflet(data = d_unfaelle_bab_2024 |> filter(Str_Kennung == "A40") 
+        |> st_transform(crs = 4326)) |>   
   addTiles() |>
   addCircleMarkers(
     radius = ~c(12, 8, 5)[UKATEGORIE],
@@ -237,15 +257,18 @@ leaflet(data = d_unfaelle_bab_2024 |> filter(Str_Kennung == "A40") |> st_transfo
   ) |>
   addLegend(
     position = "bottomright",
-    colors = c("green", "yellow",  "red", "grey", "blue", "orange", "black"), labels = c("Fahrunfall","Abbiege-Unfall",
-    "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall","Unfall durch ruhenden Verkehr", "Unfall im Längsverkehr", 
-    "Sonstiger Unfall"),
+    colors = c("green", "yellow",  "red", "grey", "blue", "orange", "black"), 
+    labels = c("Fahrunfall","Abbiege-Unfall", "Einbiegen/Kreuzen-Unfall", 
+               "Überschreiten-Unfall","Unfall durch ruhenden Verkehr", 
+               "Unfall im Längsverkehr", "Sonstiger Unfall"),
     title = "Unfalltyp",
     opacity = 1
   ) |>
   addLegendSize(
     values = c(12, 8, 5),
-    breaks = c("Unfall mit Getöteten" = 12, "Unfall mit Schwerverletzten" = 8, "Unfall mit Leichtverletzten" = 5),
+    breaks = c("Unfall mit Getöteten" = 12, 
+               "Unfall mit Schwerverletzten" = 8, 
+               "Unfall mit Leichtverletzten" = 5),
     color = "black", 
     fillColor = "black", 
     fillOpacity = 0.9,
@@ -279,19 +302,23 @@ leaflet(data = st_transform(d_unfaelle_bab_2024, 4326)) |>
     radius = ~c(12, 8, 5)[UKATEGORIE],
     color = ~farben_utyp_leaf(UTYP1), opacity = 1,
     fillColor = ~farben_utyp_leaf(UTYP1), fillOpacity = 0.9,
-    popup = ~paste("Unfallkategorie:", UKATEGORIE, "<br>Unfalltyp:", UTYP1, "<br>Autobahn:", Str_Kennung)
+    popup = ~paste("Unfallkategorie:", UKATEGORIE, "<br>Unfalltyp:", 
+                   UTYP1, "<br>Autobahn:", Str_Kennung)
   ) |>
   addLegend(
     position = "bottomright",
-    colors = c("green", "yellow",  "red", "grey", "blue", "orange", "black"), labels = c("Fahrunfall","Abbiege-Unfall",
-    "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall","Unfall durch ruhenden Verkehr", "Unfall im Längsverkehr", 
-    "Sonstiger Unfall"),
+    colors = c("green", "yellow",  "red", "grey", "blue", "orange", "black"), 
+    labels = c("Fahrunfall","Abbiege-Unfall", "Einbiegen/Kreuzen-Unfall", 
+               "Überschreiten-Unfall","Unfall durch ruhenden Verkehr", 
+               "Unfall im Längsverkehr", "Sonstiger Unfall"),
     title = "Unfalltyp",
     opacity = 1
   ) |>
   addLegendSize(
     values = c(12, 8, 5),
-    breaks = c("Unfall mit Getöteten" = 12, "Unfall mit Schwerverletzten" = 8, "Unfall mit Leichtverletzten" = 5),
+    breaks = c("Unfall mit Getöteten" = 12, 
+               "Unfall mit Schwerverletzten" = 8, 
+               "Unfall mit Leichtverletzten" = 5),
     color = "black", 
     fillColor = "black", 
     fillOpacity = 0.9,
@@ -308,34 +335,43 @@ Laut M Uko wird dann von einer Unfallhäufungsstelle gesprochen, wenn auf Stadts
 
 ### Daten einlesen und aufbereiten
 
-Als erstes laden wir die Unfalldaten aus den drei aufeinanderfolgenden Jahren und verbinden sie mit "bind_rows". Nun bereiten wir sie ähnlich wie in Aufgabe 1.1 auf. Zusätzlich filtern wir nach dem Gemeindeschlüssel der Stadt Bochum (05 = NRW, 9 = Regierungsbezirk Arnsberg, ...). Außerdem interessieren uns dieses Mal nur Stadtstraßen, dazu ermitteln wir wie bei der obigen Aufgabe die nächstgelegene Autobahn und die Entfernung zu dieser, nur dass wir nun alle Unfälle, die mindestens 20 Meter von einer Autobahn entfernt sind, behalten. Auch hier behalten wir für die Übersichtlichkeit nur ausgewählte Spalten ("select").
+Als erstes laden wir die Unfalldaten aus den drei aufeinanderfolgenden Jahren und verbinden sie mit "bind_rows". Nun bereiten wir sie ähnlich wie in Aufgabe 1.1 auf. Zusätzlich filtern wir nach dem Gemeindeschlüssel der Stadt Bochum (05 = NRW, 9 = Regierungsbezirk Arnsberg, ...). Außerdem interessieren uns dieses Mal nur Stadtstraßen, dazu ermitteln wir wie bei der obigen Aufgabe die nächstgelegene Autobahn und die Entfernung zu dieser, nur dass wir nun alle Unfälle, die mindestens 20 Meter von einer Autobahn entfernt sind, behalten. Auch hier behalten wir für die Übersichtlichkeit nur ausgewählte Spalten ("select"). Damit wir diesen Schritt, der länger dauern kann, nicht jedes Mal durchführen müssen, speichern wir den Datensatz und rufen ihn beim nächsten Mal wieder auf.
 
 ```{r}
 #| warning: false
+if (!file.exists("daten/unfaelle_alle.RData")) {
+  
+  d_unfaelle_bochum_3j <- bind_rows(
+    read_csv2("daten/Unfallorte2024_LinRef.csv") |> mutate(jahr = 2024),
+    read_csv2("daten/Unfallorte2023_LinRef.csv") |> mutate(jahr = 2023),
+    read_csv2("daten/Unfallorte2022_LinRef.csv") |> mutate(jahr = 2022)
+    ) |>
+    filter(
+      ULAND == "05",
+      UREGBEZ == "9",
+      UKREIS == "11",
+      UGEMEINDE == "000"
+    ) |>
+    st_as_sf(coords = c("LINREFX", "LINREFY"), crs = 25832) |>
+    st_zm()  |>
+    mutate(
+      abschnitt_id_bab = st_nearest_feature(geometry, d_bfstn),
+      distanz_bab = st_distance(geometry, d_bfstn[abschnitt_id_bab, ], 
+                                by_element = TRUE),
+      name_bab = d_bfstn$Str_Kennung[abschnitt_id_bab]
+    ) |>
+    filter(as.double(distanz_bab) > 20) |>
+    select(OID_, UJAHR, UMONAT, USTUNDE, UKATEGORIE, UTYP1,
+           IstPKW, IstRad, IstFuss, IstKrad,
+           ULICHTVERH, IstStrassenzustand)
 
-
-d_unfaelle_bochum_3j <- bind_rows(
-  read_csv2("daten/Unfallorte2024_LinRef.csv") |> mutate(jahr = 2024),
-  read_csv2("daten/Unfallorte2023_LinRef.csv") |> mutate(jahr = 2023),
-  read_csv2("daten/Unfallorte2022_LinRef.csv") |> mutate(jahr = 2022),
-  ) |>
-  filter(
-    ULAND == "05",
-    UREGBEZ == "9",
-    UKREIS == "11",
-    UGEMEINDE == "000"
-  ) |>
-  st_as_sf(coords = c("LINREFX", "LINREFY"), crs = 25832) |>
-  st_zm()  |>
-  mutate(
-    abschnitt_id_bab = st_nearest_feature(geometry, d_bfstn),
-    distanz_bab = st_distance(geometry, d_bfstn[abschnitt_id_bab, ], by_element = TRUE),
-    name_bab = d_bfstn$Str_Kennung[abschnitt_id_bab]
-  ) |>
-  filter(as.double(distanz_bab) > 20) |>
-  select(OID_, UJAHR, UMONAT, USTUNDE, UKATEGORIE, UTYP1,
-         IstPKW, IstRad, IstFuss, IstKrad,
-         ULICHTVERH, IstStrassenzustand)
+  save(
+    d_unfaelle_bochum_3j,
+    file = "daten/unfaelle_alle.RData"
+  )
+} else {
+  load(file = "daten/unfaelle_alle.RData")
+}
 ```
 
 Damit wir später unsere OpenStreetMap(OSM)-Daten anhand des Stadtgebiets der Stadt Bochum zuschneiden können und da die Stadtgrenze als open data [zur Verfügung steht](https://open.nrw/dataset/bochum-stadtgebiet-stadtgrenze-rvr), laden wir sie in unser Projekt. Dieser Schritt ist optional, sorgt aber dafür, dass unser Endergebnis ansprechender ist, da OSM die Daten aus einem Rechteck abfragt.
@@ -386,21 +422,26 @@ d_netz <- as_sfnetwork(d_kanten, directed = FALSE) |>
 ```
 
 OSM-Daten sind sehr detailliert: Ein einzelner Knotenpunkt (z. B. eine große Kreuzung oder ein Kreisverkehr) besteht in der OSM-Darstellung oftmals aus mehreren Netzwerk-Knoten, nämlich überall dort, wo sich zwei Fahrspuren oder Abbiegestreifen treffen. Für unsere Unfallanalyse wollen wir solche Knoten-Cluster jeweils zu einem einzigen Knoten zusammenfassen.
-Dafür bestimmen wir zunächst Nachbarschaften. Knoten des Netwerks werden als sf-Objekt extrahiert und mit "st_is_within_distance" wird für jeden Knoten ermittelt, welche anderen Knoten innerhalb eines Schwellenwertes von 20 m liegen. Das Ergebnis ist eine Liste, die die räumliche Nähe beschreibt.
-Anschließend wird diese Liste mit "graph_from_adj_list" aus dem Paket "igraph" in einen ungerichteten Graphen überführt. Dessen zusammenhängende Komponenten ("components") liegern eine Gruppen-ID: Alle Knoten, die innerhalb von 20 Metern zueinander liegen, erhalten dieselbe Gruppe. So wird z. B. ein Kreisverkehr mit zehn OSM-Knoten, die jeweils paarweise nahe beieinander liegen, zu einer einzigen Gruppe zusammengefasst.
+Dafür bestimmen wir zunächst Nachbarschaften. Knoten des Netzwerks werden als sf-Objekt extrahiert und mit "st_is_within_distance" wird für jeden Knoten ermittelt, welche anderen Knoten innerhalb eines Schwellenwertes von 20 m liegen. Das Ergebnis ist eine Liste, die die räumliche Nähe beschreibt.
+Anschließend wird diese Liste mit "graph_from_adj_list" aus dem Paket "igraph" in einen ungerichteten Graphen überführt. Dessen zusammenhängende Komponenten ("components") liefern eine Gruppen-ID: Alle Knoten, die innerhalb von 20 Metern zueinander liegen, erhalten dieselbe Gruppe. So wird z. B. ein Kreisverkehr mit zehn OSM-Knoten, die jeweils paarweise nahe beieinander liegen, zu einer einzigen Gruppe zusammengefasst.
 Nun wird mit "convert(to_spatial_contracted, group, simplify = TRUE)" jede Knotengruppe zu einem einzelnen Knoten verschmolzen und dem Datensatz zu unserem Netzwerk hinzugefügt. Die Kanten, die vorher zwischen Knoten derselben Gruppe verliefen, entfallen. Kanten zu externen Knoten werden auf den neuen, zusammengefassten Knoten umgehängt. Der Parameter simplify = TRUE entfernt dabei entstehende Mehrfachkanten und Schleifen.
 Die Variablen "knoten_sf", ""nachbarknoten" und "gruppen_id" sind Einmal-Variablen, die mit local() gekapselt werden können, sodass sie danach nicht im Environment verbleiben.
 
 ```{r}
-d_netz <- local({
-  knoten_sf <- d_netz |> activate("nodes") |> st_as_sf()
-  nachbarn <- st_is_within_distance(knoten_sf, dist = set_units(20, "m"))
-  gruppen <- components(graph_from_adj_list(nachbarn, mode = "all"))$membership
-  d_netz |>
-    activate("nodes") |>
-    mutate(group = gruppen) |>
-    convert(to_spatial_contracted, group, simplify = TRUE)
-})
+if (!file.exists("daten/strassennetz_bo.RData")) {
+  d_netz <- local({
+    knoten_sf <- d_netz |> activate("nodes") |> st_as_sf()
+    nachbarn <- st_is_within_distance(knoten_sf, dist = set_units(20, "m"))
+    gruppen <- components(graph_from_adj_list(nachbarn, mode = "all"))$membership
+    d_netz |>
+      activate("nodes") |>
+      mutate(group = gruppen) |>
+      convert(to_spatial_contracted, group, simplify = TRUE)
+  })
+  save(d_netz, file = "daten/strassennetz_bo.RData")
+} else {
+  load(file = "daten/strassennetz_bo.RData")
+}
 ```
 
 Durch die Knotenkontraktion können Mehrfachkanten (mehrere Kanten zwischen demselben Knotenpaar) und Schleifen (Kanten von einem Knoten zu sich selbst) entstehen. Diese werden nun bereinigt: Die Kanten werden zunächst nach Länge sortiert ("arrange(edge_length())"), sodass beim anschließenden Filtern jeweils die kürzeste Verbindung erhalten bleibt. edge_is_multiple() und edge_is_loop() identifizieren die überflüssigen Kanten, die dann entfernt werden. 
@@ -415,8 +456,15 @@ d_netz <- d_netz |>
 Für die weiteren Berechnungen extrahieren wir uns aus unserem Netzwerk die Knoten und Kanten.
 
 ```{r}
-d_knoten <- d_netz |> activate("nodes") |> st_as_sf() |> st_filter(d_bochum_stadtgebiet)
-d_kanten <- d_netz |> activate("edges") |> st_as_sf() |> st_filter(d_bochum_stadtgebiet)
+d_knoten <- d_netz |> 
+  activate("nodes") |> 
+  st_as_sf() |> 
+  st_filter(d_bochum_stadtgebiet)
+
+d_kanten <- d_netz |> 
+  activate("edges") |> 
+  st_as_sf() |> 
+  st_filter(d_bochum_stadtgebiet)
 ```
 
 ### Ermittlung von Unfallhäufungsstellen
@@ -427,7 +475,8 @@ Sowohl für die Unfallhäufungsstellen an Knotenpunkten als auch an freien Strec
 d_unfaelle_bochum_3j <- d_unfaelle_bochum_3j |>
   mutate(
     knoten_id = st_nearest_feature(geometry, d_knoten),
-    distanz_knoten = as.numeric(st_distance(geometry, d_knoten[knoten_id, ], by_element = TRUE))
+    distanz_knoten = as.numeric(st_distance(geometry, 
+                                            d_knoten[knoten_id, ], by_element = TRUE))
   ) 
 ```
 
@@ -471,7 +520,8 @@ if (nrow(d_unfaelle_strecke) > 0) {
     filter(n_nearby >= 5)
 
   if (nrow(d_uhl_kandidaten) > 0) {
-    d_uhl_kandidaten$cluster <- dbscan(st_coordinates(d_uhl_kandidaten), eps = 50, minPts = 5)$cluster
+    d_uhl_kandidaten$cluster <- dbscan(st_coordinates(d_uhl_kandidaten), 
+                                       eps = 50, minPts = 5)$cluster
 
     d_strecke_uhs <- d_uhl_kandidaten |>
       filter(cluster > 0) |>
@@ -497,6 +547,7 @@ Auch für die grafische Darstellung sichern wir uns dagegen ab, dass bei der Ber
 ```{r}
 #| eval: !expr knitr::is_latex_output()
 #| when-format: pdf
+#| include: false
 
 cat("*Interaktive Karte nur in der HTML-Version verfügbar.*")
 ```
@@ -522,7 +573,8 @@ karte <- leaflet() |>
   ) |>
   addAwesomeMarkers(
     data = st_transform(d_knoten_uhs, 4326),
-    icon = awesomeIcons(icon = "alert-circled", library = "ion", markerColor = "purple", iconColor = "black"),
+    icon = awesomeIcons(icon = "alert-circled", library = "ion", 
+                        markerColor = "purple", iconColor = "black"),
     group = "UHS an Knotenpunkten"
   ) |>
   addCircleMarkers(
@@ -546,12 +598,14 @@ if (!is.null(d_strecke_uhs) && nrow(d_strecke_uhs) > 0) {
       radius = 50,
       fillOpacity = 0.4,
       color = "pink", weight = 2,
-      popup = ~paste("UHS an freier Strecke<br>Anzahl Unfälle:", anzahl_unfaelle),
+      popup = ~paste("UHS an freier Strecke<br>Anzahl Unfälle:", 
+                     anzahl_unfaelle),
       group = "UHS an freier Strecke"
     ) |>
     addAwesomeMarkers(
       data = st_transform(d_strecke_uhs, 4326),
-      icon = awesomeIcons(icon = "alert-circled", library = "ion", markerColor = "pink", iconColor = "black"),
+      icon = awesomeIcons(icon = "alert-circled", library = "ion", 
+                          markerColor = "pink", iconColor = "black"),
       group = "UHS an freier Strecke"
     )
 }
@@ -560,19 +614,23 @@ karte |>
   addLegend(
     position = "bottomleft",
     colors = c("purple", "pink"),
-    labels = c("UHS an Knotenpunkten (≥ 5 Unfälle)", "UHS an freier Strecke (≥ 5 Unfälle)"),
+    labels = c("UHS an Knotenpunkten (≥ 5 Unfälle)", 
+               "UHS an freier Strecke (≥ 5 Unfälle)"),
     title = "Unfallhäufungsstellen",
     opacity = 1
   ) |>
   addLegend(
     position = "bottomright",
     colors = c("green", "yellow", "red", "grey", "blue", "orange", "black"),
-    labels = c("Fahrunfall", "Abbiege-Unfall", "Einbiegen/Kreuzen-Unfall", "Überschreiten-Unfall", "Unfall durch ruhenden Verkehr", "Unfall im Längsverkehr", "Sonstiger Unfall"),
+    labels = c("Fahrunfall", "Abbiege-Unfall", "Einbiegen/Kreuzen-Unfall", 
+               "Überschreiten-Unfall", "Unfall durch ruhenden Verkehr", 
+               "Unfall im Längsverkehr", "Sonstiger Unfall"),
     title = "Unfalltyp",
     opacity = 1
   ) |>
   addLayersControl(
-    overlayGroups = c("Straßennetz", "UHS an Knotenpunkten", "UHS an freier Strecke", "Unfälle"),
+    overlayGroups = c("Straßennetz", "UHS an Knotenpunkten", 
+                      "UHS an freier Strecke", "Unfälle"),
     options = layersControlOptions(collapsed = FALSE)
   )
 ```

@@ -21,110 +21,121 @@ library(knitr)
 library(curl)
 ```
 
-Zunächst blenden wir mit "echo = FALSE" alle Code-Chunks im gerenderten Output aus.
+Als erstes laden wir uns die Daten vom Bundesfernstraßennetz der BASt herunter bzw aus dem "daten"-Ordner, um gleich die Unfälle filtern zu können. Danach lesen als nächstes alle Unfalldaten ein, die in unserem "daten"-Ordner zur Verfügung stehen. Manche sind im .csv-Format, andere als .txt abgespeichert. Wir stellen sicher, dass alle Spaltennamen und -inhalte der verschiedenen Jahre übereinstimmen. Danach verbinden wir die Datensätze, filtern nach dem Gemeindeschlüssel der Stadt Bochum und filtern nach Unfällen, die mindestens 20 Meter von Autobahnen entfernt sind, da uns nur Unfälle auf Stadtstraßen interessieren.
+Diese beiden Datensätze speichern wir, damit sie, sofern sie vorhanden sind, nur geladen und nicht jedes Mal neu berechnet werden müssen.
 
 ```{{r}}
-#| include: false
-opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
-```
-
-Nun laden wir uns die Daten vom Bundesfernstraßennetz der BASt herunter bzw aus dem "daten"-Ordner, um gleich die Unfälle filtern zu können.
-
-```{{r}}
-if (!file.exists("daten/geo/BFStr_Netz_v2025q4.gpkg")) {
-  download.file(
+if (!file.exists("daten/unfaelle_interaktiv.RData")) {
+  # Fernstraßennetz
+  curl_download(
     "https://www.bast.de/SharedDocs/Daten-TB/Daten-BISStra.zip?__blob=publicationFile&v=5",
-    destfile = "daten/Daten-BISStra.zip", mode = "wb"
+    destfile = "daten/Daten-BISStra.zip",
+    quiet = FALSE
   )
   unzip("daten/Daten-BISStra.zip", exdir = "daten/geo/")
-}
-d_bfstn <- read_sf("daten/geo/BFStr_Netz_v2025q4.gpkg") |>
-  filter(Str_Klasse_kurz == "A" & Sk_Achse == "Bestandsachse") |>
-  mutate(rownumber = row_number()) |>
-  st_zm()
-```
+  file <- list.files(
+    "daten/geo",
+    pattern = "^BFStr_Netz.*\\.gpkg$",
+    full.names = TRUE
+  ) |>
+    tail(n = 1)
+  d_bfstn <- read_sf(file) |>
+    filter(Str_Klasse_kurz == "A" & Sk_Achse == "Bestandsachse") |>
+    mutate(rownumber = row_number()) |>
+    st_zm()
 
-Nun lesen wir alle Unfalldaten ein, die in unserem "daten"-Ordner zur Verfügung stehen. Manche sind im .csv-Format, andere als .txt abgespeichert. Wir stellen sicher, dass alle Spaltennamen und -inhalte der verschiedenen Jahre übereinstimmen. Danach verbinden wir die Datensätze, filtern nach dem Gemeindeschlüssel der Stadt Bochum und filtern nach Unfällen, die mindestens 20 Meter von Autobahnen entfernt sind, da uns nur Unfälle auf Stadtstraßen interessieren.
-
-```{{r}}
-unfaelle_einlesen <- function(datei) {
-  daten <- read_delim(
-    datei,
-    delim = ";",
-    locale = locale(decimal_mark = ",", grouping_mark = "."),
-    col_types = cols(
-      ULAND     = col_character(),
-      UKREIS    = col_character(),
-      UGEMEINDE = col_character(),
-      UMONAT    = col_character(),
-      USTUNDE   = col_character(),
-      .default  = col_guess()
-    ),
-    show_col_types = FALSE
-  )
-
-  daten <- daten |>
-    mutate(
-      ULAND = str_pad(ULAND, width = 2, pad = "0"),
-      UKREIS = str_pad(UKREIS, width = 2, pad = "0"),
-      UGEMEINDE = str_pad(UGEMEINDE, width = 3, pad = "0")
+  # Unfalldaten
+  unfaelle_einlesen <- function(datei) {
+    daten <- read_delim(
+      datei,
+      delim = ";",
+      locale = locale(decimal_mark = ",", grouping_mark = "."),
+      col_types = cols(
+        ULAND     = col_character(),
+        UKREIS    = col_character(),
+        UGEMEINDE = col_character(),
+        UMONAT    = col_character(),
+        USTUNDE   = col_character(),
+        .default  = col_guess()
+      ),
+      show_col_types = FALSE
     )
   
-  if ("USTRZUSTAND" %in% names(daten) && !("STRZUSTAND" %in% names(daten))) {
-    daten <- daten |> rename(STRZUSTAND = USTRZUSTAND)
+    daten <- daten |>
+      mutate(
+        ULAND = str_pad(ULAND, width = 2, pad = "0"),
+        UKREIS = str_pad(UKREIS, width = 2, pad = "0"),
+        UGEMEINDE = str_pad(UGEMEINDE, width = 3, pad = "0")
+      )
+    
+    if ("USTRZUSTAND" %in% names(daten) && !("STRZUSTAND" %in% names(daten))) {
+      daten <- daten |> rename(STRZUSTAND = USTRZUSTAND)
+    }
+    if ("IstStrassenzustand" %in% names(daten) && !("STRZUSTAND" %in%
+    names(daten))) {
+      daten <- daten |> rename(STRZUSTAND = IstStrassenzustand)
+    }
+    if ("OID_" %in% names(daten) && !("OBJECTID" %in% names(daten))) {
+      daten <- daten |> rename(OBJECTID = OID_)
+    }
+  
+    daten |>
+      mutate(
+        UWOCHENTAG = wday(as.numeric(UWOCHENTAG), label = TRUE),
+        UMONAT = month(as.numeric(UMONAT), label = TRUE, abbr = FALSE)
+      )
   }
-  if ("IstStrassenzustand" %in% names(daten) && !("STRZUSTAND" %in% names(daten))) {
-    daten <- daten |> rename(STRZUSTAND = IstStrassenzustand)
-  }
-  if ("OID_" %in% names(daten) && !("OBJECTID" %in% names(daten))) {
-    daten <- daten |> rename(OBJECTID = OID_)
-  }
-
-  daten |>
+  
+  d_unfalldaten <- list.files(path = "daten", pattern = "\\.(csv|txt)$", 
+  full.names = TRUE) |>
+    map(unfaelle_einlesen) |>
+    list_rbind() |>
+    filter(
+      ULAND == "05",
+      UREGBEZ == "9",
+      UKREIS == "11",
+      UGEMEINDE == "000"
+    ) |>
+    st_as_sf(coords = c("LINREFX", "LINREFY"), crs = 25832) |>
+    st_zm()  |>
     mutate(
-      UWOCHENTAG = wday(as.numeric(UWOCHENTAG), label = TRUE),
-      UMONAT = month(as.numeric(UMONAT), label = TRUE, abbr = FALSE)
+      abschnitt_id_bab = st_nearest_feature(geometry, d_bfstn),
+      distanz_bab = st_distance(geometry, d_bfstn[abschnitt_id_bab, ], 
+      by_element = TRUE),
+      name_bab = d_bfstn$Str_Kennung[abschnitt_id_bab]
+    ) |>
+    filter(as.double(distanz_bab) > 20) |>
+    mutate(
+      UKATEGORIE_neu = factor(UKATEGORIE,
+        levels = c("1", "2", "3"),
+        labels = c("Unfall mit Getöteten",
+                  "Unfall mit Schwerverletzten",
+                  "Unfall mit Leichtverletzten")),
+      UTYP1_neu = factor(as.integer(UTYP1),
+        levels = 1:7,
+        labels = c(
+            "Fahrunfall",
+            "Abbiege-Unfall",
+            "Einbiegen/Kreuzen-Unfall",
+            "Überschreiten-Unfall",
+            "Unfall durch ruhenden Verkehr",
+            "Unfall im Längsverkehr",
+            "Sonstiger Unfall"
+        )),
+      IstPKW_neu = ifelse(IstPKW == "1", "beteiligt", "nicht beteiligt"),
+      IstRad_neu = ifelse(IstRad == "1", "beteiligt", "nicht beteiligt"),
+      IstFuss_neu = ifelse(IstFuss == "1", "beteiligt", "nicht beteiligt")
     )
-}
 
-d_unfalldaten <- list.files(path = "daten", pattern = "\\.(csv|txt)$", full.names = TRUE) |>
-  map(unfaelle_einlesen) |>
-  list_rbind() |>
-  filter(
-    ULAND == "05",
-    UREGBEZ == "9",
-    UKREIS == "11",
-    UGEMEINDE == "000"
-  ) |>
-  st_as_sf(coords = c("LINREFX", "LINREFY"), crs = 25832) |>
-  st_zm()  |>
-  mutate(
-    abschnitt_id_bab = st_nearest_feature(geometry, d_bfstn),
-    distanz_bab = st_distance(geometry, d_bfstn[abschnitt_id_bab, ], by_element = TRUE),
-    name_bab = d_bfstn$Str_Kennung[abschnitt_id_bab]
-  ) |>
-  filter(as.double(distanz_bab) > 20) |>
-  mutate(
-    UKATEGORIE_neu = factor(UKATEGORIE,
-      levels = c("1", "2", "3"),
-      labels = c("Unfall mit Getöteten",
-                "Unfall mit Schwerverletzten",
-                "Unfall mit Leichtverletzten")),
-    UTYP1_neu = factor(as.integer(UTYP1),
-      levels = 1:7,
-      labels = c(
-          "Fahrunfall",
-          "Abbiege-Unfall",
-          "Einbiegen/Kreuzen-Unfall",
-          "Überschreiten-Unfall",
-          "Unfall durch ruhenden Verkehr",
-          "Unfall im Längsverkehr",
-          "Sonstiger Unfall"
-      )),
-    IstPKW_neu = ifelse(IstPKW == "1", "beteiligt", "nicht beteiligt"),
-    IstRad_neu = ifelse(IstRad == "1", "beteiligt", "nicht beteiligt"),
-    IstFuss_neu = ifelse(IstFuss == "1", "beteiligt", "nicht beteiligt")
+  # Daten sichern
+  save(
+    d_bfstn,
+    d_unfalldaten,
+    file = "daten/unfaelle_interaktiv.RData"
   )
+} else {
+  load(file = "daten/unfaelle_interaktiv.RData")
+}
 ```
 
 Nun treffen wir Vorbereitungen für die grafische Darstellungen. Zunächst fügen wir den Unfalldaten einen räumlichen Versatz von 3 Metern hinzu, damit Unfälle sich auf der Karte nicht überlagern und transformieren in das CRS, mit dem leaflet arbeitet. Außerdem definieren wir die Farben nach dem M Uko [@MUko2012]. 
@@ -157,7 +168,7 @@ farben_utyp <- colorFactor(
 )
 ```
 
-Für die Filter mit crosstalk brauchen wir die Daten als "shared data", daher transformieren wir die Unfalldaten., einmal für die Karte und einmal für die Tabelle.
+Für die Filter mit crosstalk brauchen wir die Daten als "shared data", daher transformieren wir die Unfalldaten, einmal für die Karte und einmal für die Tabelle.
 
 ```{{r}}
 sd <- SharedData$new(d_karte, key = ~ID, group = "unfaelle")
@@ -181,7 +192,19 @@ Unterhalb der Filter lassen wir uns unsere leaflet-Karte darstellen.
 
 Darunter folgt eine Tabelle mit den gefilterten Unfällen. Wir aktivieren "Scroller" und "Buttons", ermöglichen das horizontale und vertikale Scrollen und ergänzen einen Button zum Download der gefilterten Unfalldaten als .csv-Datei. 
 
+Wir stellen ein, dass dieser COde-Chunk nur ausgeführt wird, wenn das Output-Format html ist und bei einem pdf ein Platzhalter-Text erscheint.
+
 ```{{r}}
+#| eval: !expr knitr::is_latex_output()
+#| when-format: pdf
+
+cat("*Interaktive Karte nur in der HTML-Version verfügbar.*")
+```
+
+```{{r}}
+#| eval: !expr knitr::is_html_output()
+#| when-format: html
+
 bscols(
   widths = c(4, 4, 4),
   filter_checkbox("kat",  "Unfallkategorie", sd, ~UKATEGORIE_neu),
@@ -200,7 +223,7 @@ bscols(
 )
 
 leaflet(sd) |>
-  addProviderTiles(providers$Stadia.AlidadeSmooth) |>
+  addTiles() |>
   addCircleMarkers(
     lng = ~lng,
     lat = ~lat,
@@ -231,7 +254,8 @@ datatable(
   class = "compact stripe hover",
   width = "100%",
   rownames = FALSE,
-  colnames = c("ID","Jahr","Monat","Wochentag","Kategorie","Unfalltyp","PKW","Rad","Zu Fuß"),
+  colnames = c("ID","Jahr","Monat","Wochentag","Kategorie",
+                "Unfalltyp","PKW","Rad","Zu Fuß"),
   options = list(
     deferRender = TRUE,
     scrollY = 300,
@@ -243,5 +267,4 @@ datatable(
       list(extend = "csv", text = "Download CSV"))
   )
 )
-
 ```
