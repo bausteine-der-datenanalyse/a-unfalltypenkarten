@@ -9,7 +9,7 @@ Lukas Arnold, Simone Arnold, Florian Bagemihl, Matthias Baitsch,  Marc
 Fehr, Franca Hollmann, Maik Poetzsch und Sebastian Seipel ist lizensiert unter [CC BY
 4.0](https://creativecommons.org/licenses/by/4.0/deed.de). Das Werk ist
 abrufbar unter
-<https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarte>.
+<https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarten>.
 Ausgenommen von der Lizenz sind alle Logos Dritter und anders
 gekennzeichnete Inhalte. 2026
 :::
@@ -20,7 +20,7 @@ Arnold, Lukas, Simone Arnold, Florian Bagemihl, Matthias Baitsch, Marc
 Fehr, Franca Hollmann, Maik Poetzsch, und Sebastian Seipel. 2026. „Bausteine
 Computergestützter Datenanalyse. "Anwendungsbaustein
 Unfalltypenkarte“.
-<https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarte>.
+<https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarten>.
 
 BibTeX-Vorlage
 
@@ -32,7 +32,7 @@ BibTeX-Vorlage
  Baitsch, Matthias and Fehr, Marc and Hollmann, Franca and Poetzsch, 
  Maik and Seipel, Sebastian},
  year={2026},
- url={https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarte}} 
+ url={https://github.com/bausteine-der-datenanalyse/a-unfalltypenkarten}}
 ```
 ::::
 
